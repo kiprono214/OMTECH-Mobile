@@ -259,13 +259,12 @@ class _AssignedState extends State<Assigned> {
         body: Container(
           color: Colors.white,
           alignment: Alignment.topCenter,
-          margin: const EdgeInsets.only(top: 20),
           height: MediaQuery.of(context).size.height,
           child: SingleChildScrollView(
             child: Column(
               children: [
                 Container(
-                  margin: const EdgeInsets.only(left: 20, right: 20),
+                  margin: const EdgeInsets.only(left: 20, right: 20, top: 20),
                   child: Column(
                     children: [
                       const SizedBox(
@@ -437,14 +436,17 @@ class _AssignedState extends State<Assigned> {
 
                       return Container(
                           height: MediaQuery.of(context).size.height,
-                          child: ListView.builder(
-                              itemCount: documents.length,
-                              itemBuilder: (context, index) {
-                                Map<String, dynamic> data = documents[index]
-                                    .data()! as Map<String, dynamic>;
+                          child: ListView(
+                              children:
+                                  documents.map((DocumentSnapshot document) {
+                            Map<String, dynamic> data =
+                                document.data()! as Map<String, dynamic>;
 
-                                return AssetClick(title: data['title'], address: data['address'], assets: assets)
-                              }));
+                            return AssetClick(
+                              title: data['title'],
+                              address: data['address'],
+                            );
+                          }).toList()));
                     }
                     // children:
 
@@ -458,123 +460,184 @@ class _AssignedState extends State<Assigned> {
       ),
     );
   }
-
-  int getAssets(String title) async {
-    await FirebaseFirestore.instance.collection('assets').where('project', isEqualTo: title).get().then((value) {for (var doc in value.docs){}})
-  }
 }
 
-class AssetClick extends ConsumerWidget {
-  AssetClick(
-      {required this.title, required this.address, required this.assets});
+class AssetClick extends ConsumerStatefulWidget {
+  AssetClick({required this.title, required this.address});
+  final String title;
+  final String address;
+
+  @override
+  ConsumerState<AssetClick> createState() =>
+      _AssetClickState(title: title, address: address);
+}
+
+class _AssetClickState extends ConsumerState<AssetClick> {
+  _AssetClickState({required this.title, required this.address});
+
   String title;
   String address;
-  List assets;
+  String assets = '0';
+
+  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
+    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
+      ref.read(selectedNavPageNameProvider.state).state = pageName;
+    }
+  }
+
+  void getAssets(String title) async {
+    List assetsList = [];
+    await FirebaseFirestore.instance
+        .collection('assets')
+        .where('project', isEqualTo: title)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        assetsList.add(doc.id);
+        setState(() {
+          assets = assetsList.length.toString();
+        });
+      }
+    });
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getAssets(title);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // TODO: implement build
     return GestureDetector(
-      child: Container(
-        alignment: Alignment.centerLeft,
-        height: 140,
-        margin: const EdgeInsets.only(top: 6, left: 20, right: 20),
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: const Color.fromRGBO(0, 122, 255, 0.1)),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-            height: 30,
+        onTap: () {
+          _selectPage(context, ref, 'assets');
+          titleClick = title;
+        },
+        child: Container(
             alignment: Alignment.centerLeft,
-            child: Row(children: [
-              const SizedBox(
-                width: 10,
-              ),
-              Container(
-                  height: 30,
-                  width: 130,
+            height: 140,
+            margin: const EdgeInsets.only(top: 6, left: 20, right: 20),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: const Color.fromRGBO(0, 122, 255, 0.1)),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                Container(
                   alignment: Alignment.centerLeft,
-                  child: const Text("Project Title : ",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16))),
-              const SizedBox(
-                width: 10,
-              ),
-              Container(
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Container(
+                            height: 30,
+                            width: 130,
+                            alignment: Alignment.centerLeft,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: const Text("Project Title : ",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
+                            )),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Container(
+                                height: 30,
+                                width: 280,
+                                alignment: Alignment.centerLeft,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Text(title,
+                                      textAlign: TextAlign.start,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 14)),
+                                )))
+                      ]),
+                ),
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: Row(children: [
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Container(
+                        height: 30,
+                        width: 130,
+                        alignment: Alignment.centerLeft,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: const Text("Address : ",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16)),
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Container(
+                            height: 30,
+                            width: 280,
+                            alignment: Alignment.centerLeft,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Text(address,
+                                  textAlign: TextAlign.start,
+                                  style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 14)),
+                            )))
+                  ]),
+                ),
+                Container(
                   height: 30,
                   alignment: Alignment.centerLeft,
-                  child: Text(title,
-                      textAlign: TextAlign.start,
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14)))
-            ]),
-          ),
-          Container(
-            height: 30,
-            alignment: Alignment.centerLeft,
-            child: Row(children: [
-              const SizedBox(
-                width: 10,
-              ),
-              Container(
-                  height: 30,
-                  width: 130,
-                  alignment: Alignment.centerLeft,
-                  child: const Text("Address : ",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16))),
-              const SizedBox(
-                width: 10,
-              ),
-              Container(
-                  height: 30,
-                  alignment: Alignment.centerLeft,
-                  child: Text(address,
-                      textAlign: TextAlign.start,
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14)))
-            ]),
-          ),
-          Container(
-            height: 30,
-            alignment: Alignment.centerLeft,
-            child: Row(children: [
-              const SizedBox(
-                width: 10,
-              ),
-              Container(
-                  height: 30,
-                  width: 130,
-                  alignment: Alignment.centerLeft,
-                  child: const Text("No Of Assets : ",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16))),
-              const SizedBox(
-                width: 10,
-              ),
-              Container(
-                  height: 30,
-                  alignment: Alignment.centerLeft,
-                  child: Text(assets.length.toString(),
-                      textAlign: TextAlign.start,
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14)))
-            ]),
-          ),
-        ]),
-      ),
-    );
+                  child: Row(children: [
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Container(
+                        height: 30,
+                        width: 130,
+                        alignment: Alignment.centerLeft,
+                        child: const Text("No Of Assets : ",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16))),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Container(
+                        height: 30,
+                        width: 280,
+                        alignment: Alignment.centerLeft,
+                        child: Text(assets,
+                            textAlign: TextAlign.start,
+                            style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 14)))
+                  ]),
+                ),
+              ]),
+            )));
   }
 }

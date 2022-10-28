@@ -1,3 +1,5 @@
+import 'package:OMTECH/screens/author_screens/asset_details.dart';
+import 'package:OMTECH/screens/author_screens/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -10,10 +12,45 @@ import 'package:OMTECH/screens/author_screens/home.dart';
 
 Widget _currentPage = MyWidget();
 
+String titleClick = '';
+String _assetId = '',
+    _date = '',
+    _id = '',
+    _name = '',
+    _location = '',
+    _project = '',
+    _design = '',
+    _serial = '',
+    _model = '',
+    _status = '',
+    _system = '',
+    _subsystem = '',
+    _type = '',
+    _engineer = '',
+    _expectancy = '',
+    _details = '';
+
 final pages = <String, WidgetBuilder>{
   'home': (context) => const MyWidget(),
   'projects': (context) => const Assigned(),
-  'profile': (context) => const Profile()
+  'profile': (context) => const Profile(),
+  'assets': (context) => AssetsStream(title: titleClick),
+  'asset detail': (context) => AssetDetails(
+      date: _date,
+      id: _id,
+      name: _name,
+      project: _project,
+      design: _design,
+      serial: _serial,
+      location: _location,
+      model: _model,
+      status: _status,
+      system: _system,
+      subsystem: _subsystem,
+      type: _type,
+      engineer: _engineer,
+      expectancy: _expectancy,
+      details: _details)
 };
 
 final selectedNavPageNameProvider = StateProvider<String>((ref) {
