@@ -18,6 +18,7 @@ Widget _currentPage = MyWidget();
 String titleClick = '';
 
 String _assetId = '',
+    _imgUrl = '',
     _date = '',
     _id = '',
     _name = '',
@@ -39,9 +40,11 @@ final pages = <String, WidgetBuilder>{
   'projects': (context) => const Assigned(),
   'profile': (context) => const Profile(),
   'assets': (context) => AssetsStream(title: titleClick),
-  'asset detail': (context) => AssetDetails(
+  'asset details': (context) => AssetDetails(
+      assetId: _assetId,
       date: _date,
       id: _id,
+      imgUrl: _imgUrl,
       name: _name,
       project: _project,
       design: _design,
@@ -531,7 +534,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
     // no need of the file extension, the name will do fine.
     String temp = await ref.getDownloadURL();
     setState(() {
-      imgUrl = 'https://' + temp;
+      imgUrl = temp;
       print('????????????????????????????????????' + imgUrl);
     });
   }
@@ -549,6 +552,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
     return GestureDetector(
         onTap: () {
           _assetId = assetId;
+          _imgUrl = imgUrl;
           _date = date;
           _id = id;
           _name = name;
@@ -590,7 +594,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
                     imgUrl,
                     height: double.infinity,
                     width: 100,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                   ),
                 ),
               ),
