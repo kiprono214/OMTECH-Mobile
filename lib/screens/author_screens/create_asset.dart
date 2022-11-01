@@ -581,10 +581,6 @@ class _CreateAssetState extends State<CreateAsset> {
         .collection('images')
         .doc(assetDocId.toString())
         .set({'name': imgAsset, 'asset': assetDocId.toString()});
-
-    await FirebaseStorage.instance
-        .ref('asset_images/$imgAsset')
-        .putData(File(image.path));
   }
 
   String checkBox() {
