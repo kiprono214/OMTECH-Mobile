@@ -26,6 +26,35 @@ class AssetBackPress extends ConsumerWidget {
   }
 }
 
+class CreateAssetPress extends ConsumerWidget {
+  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
+    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
+      ref.read(selectedNavPageNameProvider.state).state = pageName;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        _selectPage(context, ref, 'create asset');
+      },
+      child: Container(
+          margin: const EdgeInsets.only(bottom: 100),
+          height: 60,
+          width: 60,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              color: const Color.fromRGBO(255, 174, 0, 1)),
+          child: Icon(
+            Icons.add_rounded,
+            color: Colors.white,
+            size: 50,
+          )),
+    );
+  }
+}
+
 class AssetsStream extends StatefulWidget {
   AssetsStream({Key? key, required this.title}) : super(key: key);
 
@@ -89,6 +118,7 @@ class _AssetsStreamState extends State<AssetsStream> {
         ));
 
     return Scaffold(
+      floatingActionButton: CreateAssetPress(),
       body: Container(
         alignment: Alignment.topCenter,
         height: double.infinity,
@@ -221,7 +251,7 @@ class _AssetsStreamState extends State<AssetsStream> {
                                     project: data['project'],
                                     design: data['design'],
                                     serial: data['serial_number'],
-                                    location: data['room_location'],
+                                    location: '',
                                     model: data['model'],
                                     status: data['status'],
                                     system: data['system'],

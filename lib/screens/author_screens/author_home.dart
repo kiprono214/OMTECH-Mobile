@@ -12,6 +12,7 @@ import 'package:OMTECH/screens/author_Screens/profile copy.dart';
 import 'package:OMTECH/screens/author_Screens/assigned.dart';
 import 'package:OMTECH/screens/author_screens/home.dart';
 import 'assets.dart';
+import 'create_asset.dart';
 
 Widget _currentPage = MyWidget();
 
@@ -40,6 +41,7 @@ final pages = <String, WidgetBuilder>{
   'projects': (context) => const Assigned(),
   'profile': (context) => const Profile(),
   'assets': (context) => AssetsStream(title: titleClick),
+  'create asset': (context) => CreateAsset(),
   'asset details': (context) => AssetDetails(
       assetId: _assetId,
       date: _date,
