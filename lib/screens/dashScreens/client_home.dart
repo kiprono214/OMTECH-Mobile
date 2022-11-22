@@ -229,6 +229,30 @@ class _BottomNavState extends ConsumerState<BottomNav> {
     return Stack(
       children: [
         Container(
+            height: 65,
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 1),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  color: const Color.fromRGBO(46, 55, 76, 1),
+                  height: 65,
+                  width: 35,
+                ),
+                Expanded(
+                    child: Container(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    color: const Color.fromRGBO(46, 55, 76, 1),
+                    height: 65,
+                    width: 35,
+                  ),
+                ))
+              ],
+            )),
+        Container(
           width: double.infinity,
           height: 65,
           alignment: Alignment.center,

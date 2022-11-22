@@ -106,302 +106,284 @@ class _MyWidgetState extends State<MyWidget> {
                   ],
                 ),
               ),
-              Expanded(
-                  child: Container(
-                      margin: const EdgeInsets.only(top: 20),
-                      alignment: Alignment.bottomCenter,
+              Container(
+                  height: 800,
+                  margin: const EdgeInsets.only(top: 20),
+                  alignment: Alignment.bottomCenter,
+                  // ignore: prefer_const_constructors
+                  decoration: BoxDecoration(
                       // ignore: prefer_const_constructors
-                      decoration: BoxDecoration(
+                      image: DecorationImage(
                           // ignore: prefer_const_constructors
-                          image: DecorationImage(
-                              // ignore: prefer_const_constructors
-                              image: AssetImage("assets/images/rect.png"),
-                              fit: BoxFit.cover),
-                          // ignore: prefer_const_constructors
-                          borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(50),
-                              topRight: const Radius.circular(50))),
-                      child: Expanded(
-                          child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.start,
+                          image: AssetImage("assets/images/rect.png"),
+                          fit: BoxFit.cover),
+                      // ignore: prefer_const_constructors
+                      borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(50),
+                          topRight: const Radius.circular(50))),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(
-                            height: 30,
+                          GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                                height: 150,
+                                width: 150,
+                                decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromRGBO(237, 245, 254, 1),
+                                    borderRadius: BorderRadius.circular(30)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        height: 60,
+                                        width: 60,
+                                        alignment: Alignment.center,
+                                        margin: EdgeInsets.only(top: 15),
+                                        decoration: BoxDecoration(
+                                            color: const Color.fromRGBO(
+                                                255, 251, 242, 1),
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: SvgPicture.asset(
+                                          'assets/images/study-light-idea.svg',
+                                          height: 30,
+                                          width: 30,
+                                        )),
+                                    Container(
+                                      height: 60,
+                                      width: 60,
+                                      alignment: Alignment.center,
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      child: const Text(
+                                        'Action Needed',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  ],
+                                )),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                    height: 150,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                        color: const Color.fromRGBO(
-                                            237, 245, 254, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                            height: 60,
-                                            width: 60,
-                                            alignment: Alignment.center,
-                                            margin: EdgeInsets.only(top: 15),
-                                            decoration: BoxDecoration(
-                                                color: const Color.fromRGBO(
-                                                    255, 251, 242, 1),
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                            child: SvgPicture.asset(
-                                              'assets/images/study-light-idea.svg',
-                                              height: 30,
-                                              width: 30,
-                                            )),
-                                        Container(
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                              onTap: toJobs,
+                              child: Container(
+                                  height: 150,
+                                  width: 150,
+                                  decoration: BoxDecoration(
+                                      color: const Color.fromRGBO(
+                                          237, 245, 254, 1),
+                                      borderRadius: BorderRadius.circular(30)),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
                                           height: 60,
                                           width: 60,
                                           alignment: Alignment.center,
                                           margin:
-                                              const EdgeInsets.only(bottom: 12),
-                                          child: const Text(
-                                            'Action Needed',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.black87,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500),
-                                          ),
+                                              const EdgeInsets.only(top: 15),
+                                          decoration: BoxDecoration(
+                                              color: const Color.fromRGBO(
+                                                  255, 251, 242, 1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          child: SvgPicture.asset(
+                                            'assets/images/pause 1.svg',
+                                            height: 30,
+                                            width: 30,
+                                          )),
+                                      Container(
+                                        height: 60,
+                                        width: 60,
+                                        alignment: Alignment.center,
+                                        margin: EdgeInsets.only(bottom: 12),
+                                        child: const Text(
+                                          'Jobs On Hold',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Colors.black87,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500),
                                         ),
-                                      ],
-                                    )),
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              GestureDetector(
-                                  onTap: toJobs,
-                                  child: Container(
-                                      height: 150,
-                                      width: 150,
-                                      decoration: BoxDecoration(
-                                          color: const Color.fromRGBO(
-                                              237, 245, 254, 1),
-                                          borderRadius:
-                                              BorderRadius.circular(30)),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                              height: 60,
-                                              width: 60,
-                                              alignment: Alignment.center,
-                                              margin: const EdgeInsets.only(
-                                                  top: 15),
-                                              decoration: BoxDecoration(
-                                                  color: const Color.fromRGBO(
-                                                      255, 251, 242, 1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          12)),
-                                              child: SvgPicture.asset(
-                                                'assets/images/pause 1.svg',
-                                                height: 30,
-                                                width: 30,
-                                              )),
-                                          Container(
-                                            height: 60,
-                                            width: 60,
-                                            alignment: Alignment.center,
-                                            margin: EdgeInsets.only(bottom: 12),
-                                            child: const Text(
-                                              'Jobs On Hold',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  color: Colors.black87,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ),
-                                        ],
-                                      ))),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: toPreventive,
-                                child: Container(
-                                    height: 150,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                        color: const Color.fromRGBO(
-                                            237, 245, 254, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                            height: 60,
-                                            width: 60,
-                                            alignment: Alignment.center,
-                                            margin:
-                                                const EdgeInsets.only(top: 15),
-                                            decoration: BoxDecoration(
-                                                color: const Color.fromRGBO(
-                                                    255, 251, 242, 1),
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                            child: SvgPicture.asset(
-                                              'assets/images/coronavirus 1.svg',
-                                              height: 30,
-                                              width: 30,
-                                            )),
-                                        Container(
-                                          height: 60,
-                                          width: 80,
-                                          alignment: Alignment.center,
-                                          margin: EdgeInsets.only(bottom: 12),
-                                          child: const Text(
-                                            'Preventive Maintenance',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.black87,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                    height: 150,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                        color: const Color.fromRGBO(
-                                            237, 245, 254, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                            height: 60,
-                                            width: 60,
-                                            alignment: Alignment.center,
-                                            margin:
-                                                const EdgeInsets.only(top: 15),
-                                            decoration: BoxDecoration(
-                                                color: const Color.fromRGBO(
-                                                    255, 251, 242, 1),
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                            child: SvgPicture.asset(
-                                              'assets/images/Vector (2).svg',
-                                              height: 30,
-                                              width: 30,
-                                            )),
-                                        Container(
-                                          height: 60,
-                                          width: 80,
-                                          alignment: Alignment.center,
-                                          margin:
-                                              const EdgeInsets.only(bottom: 12),
-                                          child: const Text(
-                                            'Reactive Maintenance',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.black87,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                    height: 150,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                        color: const Color.fromRGBO(
-                                            237, 245, 254, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                            height: 60,
-                                            width: 60,
-                                            alignment: Alignment.center,
-                                            margin:
-                                                const EdgeInsets.only(top: 15),
-                                            decoration: BoxDecoration(
-                                                color: const Color.fromRGBO(
-                                                    255, 251, 242, 1),
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                            child: SvgPicture.asset(
-                                              'assets/images/checklist (1) 1.svg',
-                                              height: 30,
-                                              width: 30,
-                                            )),
-                                        Container(
-                                          height: 60,
-                                          width: 80,
-                                          alignment: Alignment.center,
-                                          margin:
-                                              const EdgeInsets.only(bottom: 12),
-                                          child: const Text(
-                                            'Completed',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                color: Colors.black87,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                        ),
-                                      ],
-                                    )),
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              MyProfile()
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 0,
-                          )
+                                      ),
+                                    ],
+                                  ))),
                         ],
-                      ))))
+                      ),
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: toPreventive,
+                            child: Container(
+                                height: 150,
+                                width: 150,
+                                decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromRGBO(237, 245, 254, 1),
+                                    borderRadius: BorderRadius.circular(30)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        height: 60,
+                                        width: 60,
+                                        alignment: Alignment.center,
+                                        margin: const EdgeInsets.only(top: 15),
+                                        decoration: BoxDecoration(
+                                            color: const Color.fromRGBO(
+                                                255, 251, 242, 1),
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: SvgPicture.asset(
+                                          'assets/images/coronavirus 1.svg',
+                                          height: 30,
+                                          width: 30,
+                                        )),
+                                    Container(
+                                      height: 60,
+                                      width: 80,
+                                      alignment: Alignment.center,
+                                      margin: EdgeInsets.only(bottom: 12),
+                                      child: const Text(
+                                        'Preventive Maintenance',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  ],
+                                )),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                                height: 150,
+                                width: 150,
+                                decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromRGBO(237, 245, 254, 1),
+                                    borderRadius: BorderRadius.circular(30)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        height: 60,
+                                        width: 60,
+                                        alignment: Alignment.center,
+                                        margin: const EdgeInsets.only(top: 15),
+                                        decoration: BoxDecoration(
+                                            color: const Color.fromRGBO(
+                                                255, 251, 242, 1),
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: SvgPicture.asset(
+                                          'assets/images/Vector (2).svg',
+                                          height: 30,
+                                          width: 30,
+                                        )),
+                                    Container(
+                                      height: 60,
+                                      width: 80,
+                                      alignment: Alignment.center,
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      child: const Text(
+                                        'Reactive Maintenance',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  ],
+                                )),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                                height: 150,
+                                width: 150,
+                                decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromRGBO(237, 245, 254, 1),
+                                    borderRadius: BorderRadius.circular(30)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        height: 60,
+                                        width: 60,
+                                        alignment: Alignment.center,
+                                        margin: const EdgeInsets.only(top: 15),
+                                        decoration: BoxDecoration(
+                                            color: const Color.fromRGBO(
+                                                255, 251, 242, 1),
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: SvgPicture.asset(
+                                          'assets/images/checklist (1) 1.svg',
+                                          height: 30,
+                                          width: 30,
+                                        )),
+                                    Container(
+                                      height: 60,
+                                      width: 80,
+                                      alignment: Alignment.center,
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      child: const Text(
+                                        'Completed',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  ],
+                                )),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          MyProfile()
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 0,
+                      )
+                    ],
+                  ))
             ]),
           ],
         ),

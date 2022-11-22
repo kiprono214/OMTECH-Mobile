@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:OMTECH/screens/author_screens/author_home.dart';
+import 'package:OMTECH/screens/engineer_screens/engineer_home.dart';
+import 'package:OMTECH/screens/engineer_screens/projects.dart';
 import 'package:OMTECH/tools/drop_buttons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -899,7 +900,6 @@ class _CreateAssetState extends State<CreateAsset> {
   }
 
   Future<void> _showManufacturerDialog() async {
-    getManDoc();
     final nameField = TextFormField(
         autofocus: false,
         controller: manufacturerName,
@@ -1248,10 +1248,7 @@ class _CreateAssetState extends State<CreateAsset> {
     setState(() {
       manufacturerDocId = list.length;
     });
-    return FirebaseFirestore.instance
-        .collection("manufacturers")
-        .get()
-        .then((value) {
+    return FirebaseFirestore.instance.collection("assets").get().then((value) {
       for (var doc in value.docs) {
         list.add(doc.id);
         var temp = list.length;

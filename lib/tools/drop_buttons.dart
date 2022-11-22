@@ -30,8 +30,8 @@ class _AssetSystemsState extends State<AssetSystems> {
                 decoration: BoxDecoration(
                     color: Colors.white, //background color of dropdown button
                     border: Border.all(
-                        color: Colors.white,
-                        width: 0), //border of dropdown button
+                        color: Colors.black87,
+                        width: 0.2), //border of dropdown button
                     borderRadius: BorderRadius.circular(8)));
           }
           return DropdownButtonFormField<String>(
@@ -51,7 +51,7 @@ class _AssetSystemsState extends State<AssetSystems> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.orangeAccent, width: 0.1),
+                borderSide: BorderSide(color: Colors.black87, width: 0.2),
               ),
             ),
             onChanged: (String? newValue) {
@@ -74,8 +74,8 @@ class _AssetSystemsState extends State<AssetSystems> {
               Map<String, dynamic> data =
                   document.data() as Map<String, dynamic>;
               return DropdownMenuItem<String>(
-                value: data['name'].toString(),
-                child: Text(data['name'].toString()),
+                value: data['name'],
+                child: Text(data['name']),
               );
             }).toList(),
           );
@@ -117,7 +117,8 @@ class _AssetSubSystemsState extends State<AssetSubSystems> {
           decoration: BoxDecoration(
               color: Colors.white, //background color of dropdown button
               border: Border.all(
-                  color: Colors.white, width: 0), //border of dropdown button
+                  color: Colors.black87,
+                  width: 0.2), //border of dropdown button
               borderRadius: BorderRadius.circular(8)));
     }
 
@@ -173,8 +174,7 @@ class _AssetSubSystemsState extends State<AssetSubSystems> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        BorderSide(color: Colors.orangeAccent, width: 0.1),
+                    borderSide: BorderSide(color: Colors.black87, width: 0.2),
                   ),
                 ),
                 onChanged: (String? newValue) {
@@ -256,7 +256,8 @@ class _AssetTypesState extends State<AssetTypes> {
           decoration: BoxDecoration(
               color: Colors.white, //background color of dropdown button
               border: Border.all(
-                  color: Colors.white, width: 0), //border of dropdown button
+                  color: Colors.black87,
+                  width: 0.2), //border of dropdown button
               borderRadius: BorderRadius.circular(8)));
     }
 
@@ -300,7 +301,7 @@ class _AssetTypesState extends State<AssetTypes> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.orangeAccent, width: 0.1),
+                borderSide: BorderSide(color: Colors.black87, width: 0.2),
               ),
             ),
             onChanged: (String? newValue) {
@@ -374,8 +375,8 @@ class _RoomsState extends State<Rooms> {
                 decoration: BoxDecoration(
                     color: Colors.white, //background color of dropdown button
                     border: Border.all(
-                        color: Colors.white,
-                        width: 0), //border of dropdown button
+                        color: Colors.black87,
+                        width: 0.2), //border of dropdown button
                     borderRadius: BorderRadius.circular(8)));
           }
           return DropdownButtonFormField<String>(
@@ -395,7 +396,7 @@ class _RoomsState extends State<Rooms> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.orangeAccent, width: 0.1),
+                borderSide: BorderSide(color: Colors.black87, width: 0.2),
               ),
             ),
             onChanged: (String? newValue) {
@@ -446,7 +447,7 @@ class _ExpectancyState extends State<Expectancy> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.orangeAccent, width: 0.1),
+          borderSide: BorderSide(color: Colors.black87, width: 0.2),
         ),
       ),
       onChanged: (String? newValue) {

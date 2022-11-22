@@ -1,4 +1,5 @@
-import 'package:OMTECH/screens/author_screens/author_home.dart';
+import 'package:OMTECH/screens/engineer_screens/engineer_home.dart';
+import 'package:OMTECH/screens/engineer_screens/projects.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -241,34 +242,32 @@ class _AssetsStreamState extends State<AssetsStream> {
                           margin: const EdgeInsets.only(bottom: 120),
                           child: SingleChildScrollView(
                             child: Column(
-                                children: documents
-                                    .map((DocumentSnapshot document) {
-                                      Map<String, dynamic> data = document
-                                          .data() as Map<String, dynamic>;
+                                children:
+                                    documents.map((DocumentSnapshot document) {
+                              Map<String, dynamic> data =
+                                  document.data() as Map<String, dynamic>;
 
-                                      return AssetDetailClick(
-                                        assetId: document.id,
-                                        date: data['date'],
-                                        id: data['unique_id'],
-                                        name: data['name'],
-                                        project: data['project'],
-                                        design: data['design'],
-                                        serial: data['serial_number'],
-                                        location: data['room_location'],
-                                        model: data['model'],
-                                        status: data['status'],
-                                        system: data['system'],
-                                        subsystem: data['subsystem'],
-                                        type: data['type'],
-                                        engineer: data['engineer'],
-                                        expectancy: data['expectancy'],
-                                        details: data['details'],
-                                      );
+                              return AssetDetailClick(
+                                assetId: document.id,
+                                date: data['date'],
+                                id: data['unique_id'],
+                                name: data['name'],
+                                project: data['project'],
+                                design: data['design'],
+                                serial: data['serial_number'],
+                                location: data['room_location'],
+                                model: data['model'],
+                                status: data['status'],
+                                system: data['system'],
+                                subsystem: data['subsystem'],
+                                type: data['type'],
+                                engineer: data['engineer'],
+                                expectancy: data['expectancy'],
+                                details: data['details'],
+                              );
 
-                                      // data['room_location']
-                                    })
-                                    .toList()
-                                    .cast()),
+                              // data['room_location']
+                            }).toList()),
                           ));
                     }
                     // children:
@@ -282,6 +281,7 @@ class _AssetsStreamState extends State<AssetsStream> {
     );
   }
 }
+
 
 
 

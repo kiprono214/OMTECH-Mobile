@@ -1,10 +1,16 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:OMTECH/authentication/login.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import './engineer_home.dart';
 import './profile.dart';
 
@@ -159,6 +165,7 @@ class _ViewProfileState extends State<ViewProfile> {
                       decoration: BoxDecoration(
                           color: const Color.fromRGBO(46, 55, 73, 1),
                           borderRadius: BorderRadius.circular(54)),
+                      child: getHolder(),
                     ),
                     const SizedBox(height: 25),
                     Container(
@@ -612,6 +619,80 @@ class _ViewProfileState extends State<ViewProfile> {
         );
       },
     );
+  }
+
+  Widget getHolder() {
+    if (userProf == null) {
+      return GestureDetector(
+        onTap: (() {
+          pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
+          child: SvgPicture.asset(
+            'assets/images/image 3.svg',
+            height: 108,
+            width: 108,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: (() {
+          pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
+          child: Image.network(
+            userProf!,
+            height: 108,
+            width: 108,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  String? assetImg;
+
+  String? imgAsset;
+
+  String? imgUrl;
+
+  File? image;
+  Future pickImage() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+
+      setState(() {
+        this.image = imageTemp;
+        imgAsset = image.name;
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+    await FirebaseFirestore.instance
+        .collection('images')
+        .doc(userId.toString())
+        .set({'name': imgAsset, 'asset': userId.toString()});
+
+    if (image != null) {
+      //Upload to Firebase
+      var snapshot = await FirebaseStorage.instance
+          .ref()
+          .child('engineers/$userId')
+          .putFile(image!);
+      var downloadUrl = await snapshot.ref.getDownloadURL();
+      setState(() {
+        userProf = downloadUrl;
+      });
+    } else {
+      print('No Image Path Received');
+    }
   }
 }
 

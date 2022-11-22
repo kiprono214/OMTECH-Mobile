@@ -116,276 +116,269 @@ class _ProfileState extends ConsumerState<Profile> {
                         ],
                       ),
                     ),
-                    Expanded(
-                        child: Container(
-                            margin: const EdgeInsets.only(top: 20),
-                            alignment: Alignment.bottomCenter,
+                    Container(
+                        height: 800,
+                        margin: const EdgeInsets.only(top: 20),
+                        alignment: Alignment.bottomCenter,
+                        // ignore: prefer_const_constructors
+                        decoration: BoxDecoration(
                             // ignore: prefer_const_constructors
-                            decoration: BoxDecoration(
+                            image: DecorationImage(
                                 // ignore: prefer_const_constructors
-                                image: DecorationImage(
-                                    // ignore: prefer_const_constructors
-                                    image: AssetImage("assets/images/rect.png"),
-                                    fit: BoxFit.cover),
-                                // ignore: prefer_const_constructors
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(60),
-                                    topRight: Radius.circular(60))),
-                            child: Expanded(
-                                child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                                image: AssetImage("assets/images/rect.png"),
+                                fit: BoxFit.cover),
+                            // ignore: prefer_const_constructors
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(60),
+                                topRight: Radius.circular(60))),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 8,
+                            ),
+                            Column(
                               children: [
-                                const SizedBox(
-                                  height: 8,
+                                Container(
+                                  height: 108,
+                                  width: 108,
+                                  decoration: BoxDecoration(
+                                      color:
+                                          const Color.fromRGBO(46, 55, 73, 1),
+                                      borderRadius: BorderRadius.circular(54)),
                                 ),
-                                Column(
-                                  children: [
-                                    Container(
-                                      height: 108,
-                                      width: 108,
-                                      decoration: BoxDecoration(
-                                          color: const Color.fromRGBO(
-                                              46, 55, 73, 1),
-                                          borderRadius:
-                                              BorderRadius.circular(54)),
-                                    ),
-                                    Container(
-                                        height: 27,
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          username,
-                                          style: const TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 18),
-                                        )),
-                                    Container(
-                                        height: 21,
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          '#PM' + userId,
-                                          style: const TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14),
-                                        )),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.of(context).pushReplacement(
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ViewProfile()));
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Center(
-                                            child: Stack(
-                                              children: [
-                                                SvgPicture.asset(
-                                                  'assets/images/Rectangle (1).svg',
-                                                  height: 55,
-                                                  width: 55,
-                                                ),
-                                                Container(
-                                                  height: 55,
-                                                  width: 55,
-                                                  alignment: Alignment.center,
-                                                  child: SvgPicture.asset(
-                                                    'assets/images/Vector.svg',
-                                                    height: 21,
-                                                    width: 21,
-                                                  ),
-                                                )
-                                              ],
+                                Container(
+                                    height: 27,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      username,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 18),
+                                    )),
+                                Container(
+                                    height: 21,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      '#PM' + userId,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14),
+                                    )),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ViewProfile()));
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Center(
+                                        child: Stack(
+                                          children: [
+                                            SvgPicture.asset(
+                                              'assets/images/Rectangle (1).svg',
+                                              height: 55,
+                                              width: 55,
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            width: 25,
+                                            Container(
+                                              height: 55,
+                                              width: 55,
+                                              alignment: Alignment.center,
+                                              child: SvgPicture.asset(
+                                                'assets/images/Vector.svg',
+                                                height: 21,
+                                                width: 21,
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 25,
+                                      ),
+                                      Container(
+                                        height: 55,
+                                        width: 120,
+                                        alignment: Alignment.centerLeft,
+                                        child: const Text(
+                                          'My Profile',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Center(
+                                      child: Stack(
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/images/Rectangle (1).svg',
+                                            height: 55,
+                                            width: 55,
                                           ),
                                           Container(
                                             height: 55,
-                                            width: 120,
-                                            alignment: Alignment.centerLeft,
-                                            child: const Text(
-                                              'My Profile',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600),
+                                            width: 55,
+                                            alignment: Alignment.center,
+                                            child: SvgPicture.asset(
+                                              'assets/images/Vector (1).svg',
+                                              height: 21,
+                                              width: 21,
                                             ),
                                           )
                                         ],
                                       ),
                                     ),
                                     const SizedBox(
-                                      height: 10,
+                                      width: 25,
                                     ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Center(
-                                          child: Stack(
-                                            children: [
-                                              SvgPicture.asset(
-                                                'assets/images/Rectangle (1).svg',
-                                                height: 55,
-                                                width: 55,
-                                              ),
-                                              Container(
-                                                height: 55,
-                                                width: 55,
-                                                alignment: Alignment.center,
-                                                child: SvgPicture.asset(
-                                                  'assets/images/Vector (1).svg',
-                                                  height: 21,
-                                                  width: 21,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 25,
-                                        ),
-                                        Container(
-                                          height: 55,
-                                          width: 120,
-                                          alignment: Alignment.centerLeft,
-                                          child: const Text(
-                                            'Calender',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Center(
-                                          child: Stack(
-                                            children: [
-                                              SvgPicture.asset(
-                                                'assets/images/Rectangle (1).svg',
-                                                height: 55,
-                                                width: 55,
-                                              ),
-                                              Container(
-                                                height: 55,
-                                                width: 55,
-                                                alignment: Alignment.center,
-                                                child: SvgPicture.asset(
-                                                  'assets/images/newspaper 1.svg',
-                                                  height: 21,
-                                                  width: 21,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 25,
-                                        ),
-                                        Container(
-                                          height: 55,
-                                          width: 120,
-                                          alignment: Alignment.centerLeft,
-                                          child: const Text(
-                                            'Generate Reports',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Center(
-                                          child: Stack(
-                                            children: [
-                                              SvgPicture.asset(
-                                                'assets/images/Rectangle (1).svg',
-                                                height: 55,
-                                                width: 55,
-                                              ),
-                                              Container(
-                                                height: 55,
-                                                width: 55,
-                                                alignment: Alignment.center,
-                                                child: SvgPicture.asset(
-                                                  'assets/images/Group 55763.svg',
-                                                  height: 21,
-                                                  width: 21,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 25,
-                                        ),
-                                        Container(
-                                          height: 55,
-                                          width: 120,
-                                          alignment: Alignment.centerLeft,
-                                          child: const Text(
-                                            'Notifications',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                        )
-                                      ],
+                                    Container(
+                                      height: 55,
+                                      width: 120,
+                                      alignment: Alignment.centerLeft,
+                                      child: const Text(
+                                        'Calender',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600),
+                                      ),
                                     )
                                   ],
                                 ),
                                 const SizedBox(
-                                  height: 30,
+                                  height: 10,
                                 ),
-                                Container(
-                                    width: double.infinity,
-                                    alignment: Alignment.center,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        _selectPage(context, ref, 'home');
-                                        Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                                builder: (context) => Login()));
-                                      },
-                                      child: Container(
-                                        height: 53,
-                                        width: 262,
-                                        decoration: BoxDecoration(
-                                            color:
-                                                Color.fromRGBO(255, 174, 0, 1),
-                                            borderRadius:
-                                                BorderRadius.circular(18)),
-                                        alignment: Alignment.center,
-                                        child: Container(
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Center(
+                                      child: Stack(
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/images/Rectangle (1).svg',
+                                            height: 55,
+                                            width: 55,
+                                          ),
+                                          Container(
+                                            height: 55,
+                                            width: 55,
                                             alignment: Alignment.center,
-                                            height: 30,
-                                            child: const Text('LOG OUT',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 20))),
+                                            child: SvgPicture.asset(
+                                              'assets/images/newspaper 1.svg',
+                                              height: 21,
+                                              width: 21,
+                                            ),
+                                          )
+                                        ],
                                       ),
-                                    ))
+                                    ),
+                                    const SizedBox(
+                                      width: 25,
+                                    ),
+                                    Container(
+                                      height: 55,
+                                      width: 120,
+                                      alignment: Alignment.centerLeft,
+                                      child: const Text(
+                                        'Generate Reports',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Center(
+                                      child: Stack(
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/images/Rectangle (1).svg',
+                                            height: 55,
+                                            width: 55,
+                                          ),
+                                          Container(
+                                            height: 55,
+                                            width: 55,
+                                            alignment: Alignment.center,
+                                            child: SvgPicture.asset(
+                                              'assets/images/Group 55763.svg',
+                                              height: 21,
+                                              width: 21,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 25,
+                                    ),
+                                    Container(
+                                      height: 55,
+                                      width: 120,
+                                      alignment: Alignment.centerLeft,
+                                      child: const Text(
+                                        'Notifications',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  ],
+                                )
                               ],
-                            ))))
+                            ),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            Container(
+                                width: double.infinity,
+                                alignment: Alignment.center,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _selectPage(context, ref, 'home');
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) => Login()));
+                                  },
+                                  child: Container(
+                                    height: 53,
+                                    width: 262,
+                                    decoration: BoxDecoration(
+                                        color: Color.fromRGBO(255, 174, 0, 1),
+                                        borderRadius:
+                                            BorderRadius.circular(18)),
+                                    alignment: Alignment.center,
+                                    child: Container(
+                                        alignment: Alignment.center,
+                                        height: 30,
+                                        child: const Text('LOG OUT',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 20))),
+                                  ),
+                                ))
+                          ],
+                        ))
                   ])),
         ],
       ),

@@ -1,3 +1,8 @@
+import 'package:OMTECH/screens/engineer_screens/asset_details.dart';
+import 'package:OMTECH/screens/engineer_screens/assets.dart';
+import 'package:OMTECH/screens/engineer_screens/create_asset.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -10,10 +15,50 @@ import './projects.dart';
 
 Widget _currentPage = MyWidget();
 
+String _assetId = '',
+    _imgUrl = '',
+    _date = '',
+    _id = '',
+    _name = '',
+    _location = '',
+    _project = '',
+    _design = '',
+    _serial = '',
+    _model = '',
+    _status = '',
+    _system = '',
+    _subsystem = '',
+    _type = '',
+    _engineer = '',
+    _expectancy = '',
+    _details = '';
+
 final pages = <String, WidgetBuilder>{
   'home': (context) => const MyWidget(),
   'projects': (context) => const Assigned(),
-  'profile': (context) => const Profile()
+  'profile': (context) => const Profile(),
+  'create asset': (context) => CreateAsset(),
+  'assets': (context) => AssetsStream(
+        title: titleClick,
+      ),
+  'asset details': (context) => AssetDetails(
+      assetId: _assetId,
+      date: _date,
+      id: _id,
+      imgUrl: _imgUrl,
+      name: _name,
+      project: _project,
+      design: _design,
+      serial: _serial,
+      location: _location,
+      model: _model,
+      status: _status,
+      system: _system,
+      subsystem: _subsystem,
+      type: _type,
+      engineer: _engineer,
+      expectancy: _expectancy,
+      details: _details)
 };
 
 final selectedNavPageNameProvider = StateProvider<String>((ref) {
@@ -229,6 +274,30 @@ class _BottomNavState extends ConsumerState<BottomNav> {
     return Stack(
       children: [
         Container(
+            height: 65,
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 1),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  color: const Color.fromRGBO(46, 55, 76, 1),
+                  height: 65,
+                  width: 35,
+                ),
+                Expanded(
+                    child: Container(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    color: const Color.fromRGBO(46, 55, 76, 1),
+                    height: 65,
+                    width: 35,
+                  ),
+                ))
+              ],
+            )),
+        Container(
           width: double.infinity,
           height: 65,
           alignment: Alignment.center,
@@ -381,5 +450,325 @@ class Content extends ConsumerWidget {
     return Scaffold(
       body: content(context),
     );
+  }
+}
+
+class AssetDetailClick extends ConsumerStatefulWidget {
+  AssetDetailClick(
+      {required this.assetId,
+      required this.date,
+      required this.id,
+      required this.name,
+      required this.project,
+      required this.design,
+      required this.serial,
+      required this.location,
+      required this.model,
+      required this.status,
+      required this.system,
+      required this.subsystem,
+      required this.type,
+      required this.engineer,
+      required this.expectancy,
+      required this.details});
+
+  String assetId,
+      date,
+      id,
+      name,
+      location,
+      project,
+      design,
+      serial,
+      model,
+      status,
+      system,
+      subsystem,
+      type,
+      engineer,
+      expectancy,
+      details;
+
+  @override
+  ConsumerState<AssetDetailClick> createState() => _AssetDetailClickState(
+      assetId: assetId,
+      date: date,
+      id: id,
+      name: name,
+      location: location,
+      project: project,
+      design: design,
+      serial: serial,
+      model: model,
+      status: status,
+      system: system,
+      subsystem: subsystem,
+      type: type,
+      engineer: engineer,
+      expectancy: expectancy,
+      details: details);
+}
+
+class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
+  _AssetDetailClickState(
+      {required this.assetId,
+      required this.date,
+      required this.id,
+      required this.name,
+      required this.project,
+      required this.design,
+      required this.serial,
+      required this.location,
+      required this.model,
+      required this.status,
+      required this.system,
+      required this.subsystem,
+      required this.type,
+      required this.engineer,
+      required this.expectancy,
+      required this.details});
+
+  String date,
+      id,
+      name,
+      location,
+      project,
+      design,
+      serial,
+      model,
+      status,
+      system,
+      subsystem,
+      type,
+      engineer,
+      expectancy,
+      details;
+
+  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
+    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
+      ref.read(selectedNavPageNameProvider.state).state = pageName;
+    }
+  }
+
+  String imgUrl = '';
+
+  String assetId;
+
+  Future<void> getImg() async {
+    await FirebaseFirestore.instance
+        .collection('images')
+        .where('asset', isEqualTo: assetId)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        setState(() {
+          imgUrl = doc.get('name');
+          print(assetId);
+        });
+      }
+    });
+    final ref =
+        await FirebaseStorage.instance.ref().child('asset_images/$imgUrl');
+    // no need of the file extension, the name will do fine.
+    String temp = await ref.getDownloadURL();
+    setState(() {
+      imgUrl = temp;
+      print('????????????????????????????????????' + imgUrl);
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getImg();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return GestureDetector(
+        onTap: () {
+          _assetId = assetId;
+          _imgUrl = imgUrl;
+          _date = date;
+          _id = id;
+          _name = name;
+          _location = location;
+          _project = project;
+          _design = design;
+          _serial = serial;
+          _model = model;
+          _status = status;
+          _system = system;
+          _subsystem = subsystem;
+          _type = type;
+          _engineer = engineer;
+          _expectancy = expectancy;
+          _details = details;
+          _selectPage(context, ref, 'asset details');
+        },
+        child: Container(
+          alignment: Alignment.centerLeft,
+          height: 140,
+          margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.5),
+              color: const Color.fromRGBO(0, 122, 255, 0.1)),
+          child: Row(
+            children: [
+              Container(
+                height: 100,
+                width: 100,
+                margin: const EdgeInsets.all(0.25),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white,
+                ),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10), child: getPic()),
+              ),
+              Container(
+                  height: double.infinity,
+                  alignment: Alignment.centerLeft,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Container(
+                                      height: 30,
+                                      width: 48,
+                                      alignment: Alignment.centerLeft,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: const Text("Title : ",
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16)),
+                                      )),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Container(
+                                          height: 30,
+                                          width: 120,
+                                          alignment: Alignment.centerLeft,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Text(name,
+                                                textAlign: TextAlign.start,
+                                                style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight:
+                                                        FontWeight.normal,
+                                                    fontSize: 14)),
+                                          )))
+                                ]),
+                          ),
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            child: Row(children: [
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                  height: 30,
+                                  width: 46,
+                                  alignment: Alignment.centerLeft,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: const Text("Type : ",
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16)),
+                                  )),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Container(
+                                      height: 30,
+                                      width: 120,
+                                      alignment: Alignment.centerLeft,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(type,
+                                            textAlign: TextAlign.start,
+                                            style: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.normal,
+                                                fontSize: 14)),
+                                      )))
+                            ]),
+                          ),
+                          Container(
+                            height: 30,
+                            alignment: Alignment.centerLeft,
+                            child: Row(children: [
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                  height: 30,
+                                  width: 48,
+                                  alignment: Alignment.centerLeft,
+                                  child: const Text("Room : ",
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16))),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                  height: 30,
+                                  width: 120,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(location,
+                                      textAlign: TextAlign.start,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 14)))
+                            ]),
+                          ),
+                        ]),
+                  )),
+            ],
+          ),
+        ));
+  }
+
+  Widget getPic() {
+    if (imgUrl == '') {
+      return SvgPicture.asset(
+        'assets/images/image 3.svg',
+        height: 100,
+        width: 100,
+        fit: BoxFit.cover,
+      );
+    } else {
+      return Image.network(
+        imgUrl,
+        height: 100,
+        width: 100,
+        fit: BoxFit.cover,
+      );
+    }
   }
 }

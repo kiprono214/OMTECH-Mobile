@@ -1,5 +1,7 @@
 import 'package:OMTECH/screens/author_screens/asset_details.dart';
 import 'package:OMTECH/screens/author_screens/assets.dart';
+import 'package:OMTECH/screens/author_screens/assigned.dart';
+import 'package:OMTECH/screens/author_screens/engineer_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +10,7 @@ import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:OMTECH/screens/author_Screens/profile copy.dart';
-import 'package:OMTECH/screens/author_Screens/assigned.dart';
+import 'package:OMTECH/screens/author_screens/profile copy.dart';
 import 'package:OMTECH/screens/author_screens/home.dart';
 import 'assets.dart';
 import 'create_asset.dart';
@@ -39,6 +40,7 @@ String _assetId = '',
 final pages = <String, WidgetBuilder>{
   'home': (context) => const MyWidget(),
   'projects': (context) => const Assigned(),
+  'engineers': (context) => const Engineers(),
   'profile': (context) => const Profile(),
   'assets': (context) => AssetsStream(title: titleClick),
   'create asset': (context) => CreateAsset(),
@@ -277,13 +279,38 @@ class _BottomNavState extends ConsumerState<BottomNav> {
     return Stack(
       children: [
         Container(
+            height: 65,
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 1),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  color: const Color.fromRGBO(46, 55, 76, 1),
+                  height: 65,
+                  width: 70,
+                ),
+                Expanded(
+                    child: Container(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    color: const Color.fromRGBO(46, 55, 76, 1),
+                    height: 65,
+                    width: 70,
+                  ),
+                ))
+              ],
+            )),
+        Container(
           height: 65,
           width: double.infinity,
-          alignment: Alignment.center,
+          alignment: Alignment.bottomCenter,
           child: SvgPicture.asset(
             'assets/images/Path 1.svg',
             width: double.infinity,
             height: 65,
+            fit: BoxFit.fitHeight,
           ),
         ),
         Container(
@@ -583,7 +610,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
           child: Row(
             children: [
               Container(
-                height: double.infinity,
+                height: 100,
                 width: 100,
                 margin: const EdgeInsets.all(0.25),
                 decoration: BoxDecoration(
@@ -591,14 +618,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
                   color: Colors.white,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(0.25),
-                  child: Image.network(
-                    imgUrl,
-                    height: double.infinity,
-                    width: 100,
-                    fit: BoxFit.fill,
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(10), child: getPic()),
               ),
               Container(
                   height: double.infinity,
@@ -723,5 +743,23 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
             ],
           ),
         ));
+  }
+
+  Widget getPic() {
+    if (imgUrl == '') {
+      return SvgPicture.asset(
+        'assets/images/image 3.svg',
+        height: 100,
+        width: 100,
+        fit: BoxFit.cover,
+      );
+    } else {
+      return Image.network(
+        imgUrl,
+        height: 100,
+        width: 100,
+        fit: BoxFit.cover,
+      );
+    }
   }
 }

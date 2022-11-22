@@ -140,14 +140,14 @@ packages:
       name: ffi
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.1"
+    version: "1.2.1"
   file_picker:
     dependency: "direct main"
     description:
       name: file_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.2.2"
+    version: "4.6.1"
   firebase_auth:
     dependency: "direct main"
     description:
@@ -290,12 +290,12 @@ packages:
     source: hosted
     version: "0.8.6"
   image_picker_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: image_picker_android
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.5+3"
+    version: "0.8.4+13"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -475,7 +475,7 @@ packages:
       name: win32
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "2.6.1"
   xml:
     dependency: transitive
     description:

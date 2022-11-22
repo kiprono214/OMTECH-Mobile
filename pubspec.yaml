@@ -43,8 +43,11 @@ dependencies:
   cloud_firestore_odm: ^1.0.0-dev.32
   json_annotation: ^4.7.0
   firebase_storage: ^10.3.11
-  file_picker: ^5.2.2
+  file_picker: ^4.6.0
   image_picker: ^0.8.6
+
+dependency_overrides:
+  image_picker_android: 0.8.4+13
 
 dev_dependencies:
   flutter_test:

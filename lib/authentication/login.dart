@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
 late String username, userEmail, userPassword, userId;
+String? userProf;
 
 class Login extends ConsumerStatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -362,26 +364,26 @@ class _LoginState extends ConsumerState<Login> {
             )));
   }
 
-  void toWorkerDash() {
+  void toWorkerDash() async {
     Navigator.of(context)
         .pushReplacement(MaterialPageRoute(builder: (context) => Login()));
   }
 
-  void toAuthorDash() {
+  void toAuthorDash() async {
     Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => AuthorHome(
               from: 'login',
             )));
   }
 
-  void toClientDash() {
+  void toClientDash() async {
     Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => ClientDash(
               from: 'login',
             )));
   }
 
-  void toCompanyDash() {
+  void toCompanyDash() async {
     Navigator.of(context)
         .pushReplacement(MaterialPageRoute(builder: (context) => Login()));
   }
@@ -582,17 +584,33 @@ class _LoginState extends ConsumerState<Login> {
   }
 
   String access = '';
+  String imageFolder = '';
 
   void handleTimeout() {
     if (access == 'client') {
+      setState(() {
+        imageFolder = 'clients';
+      });
       getClientStatus();
     } else if (access == 'manager') {
+      setState(() {
+        imageFolder = 'authors';
+      });
       getAuthorStatus();
     } else if (access == 'company') {
+      setState(() {
+        imageFolder = 'companies';
+      });
       getCompanyStatus();
     } else if (access == 'engineer') {
+      setState(() {
+        imageFolder = 'engineers';
+      });
       getEngineerStatus();
     } else if (access == 'worker') {
+      setState(() {
+        imageFolder = 'workers';
+      });
       getWorkerStatus();
     } else {
       _showDialog('Something went wrong');

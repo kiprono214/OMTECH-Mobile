@@ -1,13 +1,18 @@
+import 'dart:io';
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:OMTECH/authentication/login.dart';
-import 'package:OMTECH/screens/dashScreens/client_home.dart';
-import 'package:OMTECH/screens/dashScreens/edit_profile.dart';
+import 'package:OMTECH/screens/engineer_screens/engineer_home.dart';
+import 'package:OMTECH/screens/engineer_screens/edit_profile.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Profile extends ConsumerStatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -67,59 +72,54 @@ class _ProfileState extends ConsumerState<Profile> {
                   image: AssetImage("assets/images/Rectangle.png"),
                   fit: BoxFit.cover),
               borderRadius: BorderRadius.circular(0)),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
-              margin: EdgeInsets.only(top: 30),
-              padding: EdgeInsets.only(left: 20, right: 20),
-              child: Row(
-                children: [
-                  Container(
-                    height: 40,
-                    width: 80,
-                    alignment: Alignment.topLeft,
-                    margin: const EdgeInsets.only(top: 30, left: 12),
-                    decoration: BoxDecoration(
-                        image: const DecorationImage(
-                            image: AssetImage("assets/images/omlogo.png"),
-                            fit: BoxFit.fill),
-                        borderRadius: BorderRadius.circular(0)),
-                  ),
-                  Expanded(
-                    child: Container(
-                        alignment: Alignment.topRight,
-                        margin: const EdgeInsets.only(
-                          top: 30,
-                          right: 12,
-                        ),
-                        // decoration: BoxDecoration(
-                        //     image: const DecorationImage(
-                        //         image: AssetImage("assets/images/round.png")),
-                        //     borderRadius: BorderRadius.circular(0)),
-                        child: Stack(children: const [
-                          Image(image: AssetImage("assets/images/round.png")),
-                          // Image(image: AssetImage("assets/images/prof.png")),
-                        ])),
-                  )
-                ],
+          child: SingleChildScrollView(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(
+                margin: EdgeInsets.only(top: 30),
+                padding: EdgeInsets.only(left: 20, right: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 40,
+                      width: 80,
+                      alignment: Alignment.topLeft,
+                      margin: const EdgeInsets.only(top: 30, left: 12),
+                      decoration: BoxDecoration(
+                          image: const DecorationImage(
+                              image: AssetImage("assets/images/omlogo.png"),
+                              fit: BoxFit.fill),
+                          borderRadius: BorderRadius.circular(0)),
+                    ),
+                    Expanded(
+                      child: Container(
+                          alignment: Alignment.topRight,
+                          margin: const EdgeInsets.only(
+                            top: 30,
+                            right: 12,
+                          ),
+                          child: getSmallHolder()),
+                    )
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-                child: Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    alignment: Alignment.bottomCenter,
-                    // ignore: prefer_const_constructors
-                    decoration: BoxDecoration(
-                        // ignore: prefer_const_constructors
-                        image: DecorationImage(
-                            // ignore: prefer_const_constructors
-                            image: AssetImage("assets/images/rect.png"),
-                            fit: BoxFit.cover),
-                        // ignore: prefer_const_constructors
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(60),
-                            topRight: Radius.circular(60))),
-                    child: Expanded(
-                        child: Column(
+              Container(
+                  height: 650,
+                  margin: const EdgeInsets.only(top: 20),
+                  alignment: Alignment.topCenter,
+                  // ignore: prefer_const_constructors
+                  decoration: BoxDecoration(
+                      // ignore: prefer_const_constructors
+                      image: DecorationImage(
+                          // ignore: prefer_const_constructors
+                          image: AssetImage("assets/images/rect.png"),
+                          fit: BoxFit.cover),
+                      // ignore: prefer_const_constructors
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(60),
+                          topRight: Radius.circular(60))),
+                  child: SingleChildScrollView(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         const SizedBox(
@@ -133,6 +133,7 @@ class _ProfileState extends ConsumerState<Profile> {
                               decoration: BoxDecoration(
                                   color: const Color.fromRGBO(46, 55, 73, 1),
                                   borderRadius: BorderRadius.circular(54)),
+                              child: getHolder(),
                             ),
                             Container(
                                 height: 27,
@@ -362,8 +363,123 @@ class _ProfileState extends ConsumerState<Profile> {
                               ),
                             ))
                       ],
-                    ))))
-          ])),
+                    ),
+                  ))
+            ]),
+          )),
     );
+  }
+
+  Widget getHolder() {
+    if (userProf == null) {
+      return GestureDetector(
+        onTap: (() {
+          pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
+          child: SvgPicture.asset(
+            'assets/images/image 3.svg',
+            height: 108,
+            width: 108,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: (() {
+          pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
+          child: Image.network(
+            userProf!,
+            height: 108,
+            width: 108,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  void getProf() async {
+    userProf = await FirebaseStorage.instance
+        .ref()
+        .child('authors/$userId')
+        .getDownloadURL();
+    print('"""""""""""""""""$userProf');
+    setState(() {});
+  }
+
+  Widget getSmallHolder() {
+    if (userProf == null) {
+      return GestureDetector(
+        onTap: (() {}),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: SvgPicture.asset(
+            'assets/images/image 3.svg',
+            height: 50,
+            width: 50,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: (() {}),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: Image.network(
+            userProf!,
+            height: 50,
+            width: 50,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  String? assetImg;
+
+  String? imgAsset;
+
+  String? imgUrl;
+
+  File? image;
+  Future pickImage() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+
+      setState(() {
+        this.image = imageTemp;
+        imgAsset = image.name;
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+    await FirebaseFirestore.instance
+        .collection('images')
+        .doc(userId.toString())
+        .set({'name': imgAsset, 'asset': userId.toString()});
+
+    if (image != null) {
+      //Upload to Firebase
+      var snapshot = await FirebaseStorage.instance
+          .ref()
+          .child('engineers/$userId')
+          .putFile(image!);
+      var downloadUrl = await snapshot.ref.getDownloadURL();
+      setState(() {
+        userProf = downloadUrl;
+      });
+    } else {
+      print('No Image Path Received');
+    }
   }
 }
