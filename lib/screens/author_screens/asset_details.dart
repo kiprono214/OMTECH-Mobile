@@ -1,3 +1,4 @@
+import 'package:OMTECH/screens/author_screens/asset_work_orders.dart';
 import 'package:OMTECH/screens/author_screens/author_home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -128,6 +129,33 @@ class _AssetDetailsState extends State<AssetDetails> {
     super.initState();
     getManufacturerDetails();
     getDocuments();
+    if (widget.imgUrl == '') {
+      getImg();
+    }
+  }
+
+  Future<void> getImg() async {
+    await FirebaseFirestore.instance
+        .collection('images')
+        .where('asset', isEqualTo: widget.assetId)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        setState(() {
+          widget.imgUrl = doc.get('name');
+          print(widget.assetId);
+        });
+      }
+    });
+    final ref = await FirebaseStorage.instance
+        .ref()
+        .child('asset_images/$widget.imgUrl');
+    // no need of the file extension, the name will do fine.
+    String temp = await ref.getDownloadURL();
+    setState(() {
+      widget.imgUrl = temp;
+      print('????????????????????????????????????' + widget.imgUrl);
+    });
   }
 
   String manf_name = '',
@@ -856,18 +884,25 @@ class _AssetDetailsState extends State<AssetDetails> {
                   const SizedBox(
                     height: 20,
                   ),
-                  Container(
-                    height: 50,
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(left: 40, right: 40),
-                    decoration: BoxDecoration(
-                        color: const Color.fromRGBO(255, 174, 0, 1),
-                        borderRadius: BorderRadius.circular(10)),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'View Work Orders',
-                      style:
-                          TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: ((context) =>
+                              AssetWorkOrders(uniqueId: id))));
+                    },
+                    child: Container(
+                      height: 50,
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(left: 40, right: 40),
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(255, 174, 0, 1),
+                          borderRadius: BorderRadius.circular(10)),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'View Work Orders',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w600),
+                      ),
                     ),
                   )
                 ]))));

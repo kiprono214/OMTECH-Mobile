@@ -601,7 +601,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
         },
         child: Container(
           alignment: Alignment.centerLeft,
-          height: 140,
+          height: 120,
           margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
           decoration: BoxDecoration(

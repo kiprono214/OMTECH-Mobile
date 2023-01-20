@@ -414,7 +414,7 @@ class _CreateAssetState extends State<CreateAsset> {
                   margin: const EdgeInsets.only(bottom: 6),
                   width: double.infinity,
                   height: 50,
-                  child: Rooms(),
+                  child: Rooms(title: titleClick),
                   decoration:
                       BoxDecoration(borderRadius: BorderRadius.circular(8)),
                 ),
@@ -606,15 +606,14 @@ class _CreateAssetState extends State<CreateAsset> {
 
   Future<void> addNewAsset() {
     String dateNow = DateFormat("dd/MM/yyyy").format(DateTime.now());
+
     if (subsystemButton == null) {
       subsystemButton = '';
     }
     if (assetTypeButton == null) {
       assetTypeButton = '';
     }
-    if (roomsButton == null) {
-      roomsButton = '';
-    }
+    if (roomsButton == null) {}
     return FirebaseFirestore.instance
         .collection('assets')
         .doc(assetDocId.toString())
@@ -622,7 +621,7 @@ class _CreateAssetState extends State<CreateAsset> {
       'date': dateNow,
       'name': name.text,
       'project': titleClick,
-      'room_location': roomsButton,
+      'room_location': roomName.text,
       'serial_number': serialNumber.text,
       'unique_id': assetID.text,
       'design': design.text,
