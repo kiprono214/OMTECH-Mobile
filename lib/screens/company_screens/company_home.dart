@@ -1,3 +1,4 @@
+import 'package:OMTECH/screens/company_screens/workers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -5,14 +6,13 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:OMTECH/screens/company_screens/profile.dart';
-import 'package:OMTECH/screens/company_screens/projects.dart';
 import 'package:OMTECH/screens/company_screens/home.dart';
 
 Widget _currentPage = MyWidget();
 
 final pages = <String, WidgetBuilder>{
   'home': (context) => const MyWidget(),
-  'projects': (context) => const Assigned(),
+  'workers': (context) => const Workers(),
   'profile': (context) => const Profile()
 };
 
@@ -28,17 +28,17 @@ final selectedNavPageBuilderProvider = Provider<WidgetBuilder>((ref) {
   return pages[selectedPageKey]!;
 });
 
-class AuthorHome extends ConsumerStatefulWidget {
-  AuthorHome({Key? key, this.from}) : super(key: key);
+class CompanyHome extends ConsumerStatefulWidget {
+  CompanyHome({Key? key, this.from}) : super(key: key);
 
   String? from;
 
   @override
-  ConsumerState<AuthorHome> createState() => _AuthorHomeState(from: from);
+  ConsumerState<CompanyHome> createState() => _CompanyHomeState(from: from);
 }
 
-class _AuthorHomeState extends ConsumerState<AuthorHome> {
-  _AuthorHomeState({this.from});
+class _CompanyHomeState extends ConsumerState<CompanyHome> {
+  _CompanyHomeState({this.from});
   String? from;
   static String selected = 'home';
   static String visHome = 'true';
@@ -150,13 +150,13 @@ class _BottomNavState extends ConsumerState<BottomNav> {
   SvgPicture getProjSvg(String selected) {
     if (selected == 'proj') {
       return SvgPicture.asset(
-        'assets/images/office bag (1).svg',
+        'assets/images/Group 55609 (1).svg',
         height: 24,
         width: 24,
       );
     } else {
       return SvgPicture.asset(
-        'assets/images/office bag.svg',
+        'assets/images/Group 55609.svg',
         height: 24,
         width: 24,
       );
@@ -218,7 +218,7 @@ class _BottomNavState extends ConsumerState<BottomNav> {
     if (ref.watch(selectedNavPageNameProvider.state).state == 'home') {
       setHome();
     } else if (ref.watch(selectedNavPageNameProvider.state).state ==
-        'projects') {
+        'workers') {
       setProjects();
     } else {
       setState(() {
@@ -318,7 +318,7 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                 GestureDetector(
                   onTap: () {
                     setProjects();
-                    _selectPage(context, ref, 'projects');
+                    _selectPage(context, ref, 'workers');
                   },
                   child: Container(
                     margin: const EdgeInsets.only(left: 100),
@@ -330,7 +330,7 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                         GestureDetector(
                           onTap: () {
                             setProjects();
-                            _selectPage(context, ref, 'projects');
+                            _selectPage(context, ref, 'workers');
                           },
                           child: Container(
                             alignment: Alignment.center,
@@ -350,7 +350,7 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                           height: 7,
                         ),
                         Text(
-                          'Projects',
+                          'Workers',
                           style:
                               TextStyle(fontSize: 10, color: textColor('proj')),
                         )

@@ -130,7 +130,7 @@ class _AuthorHomeState extends ConsumerState<AuthorHome> {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
-                    margin: const EdgeInsets.only(top: 400),
+                    margin: const EdgeInsets.only(top: 600),
                     child: BottomNav()),
               ),
               Align(
@@ -139,7 +139,7 @@ class _AuthorHomeState extends ConsumerState<AuthorHome> {
                     height: 76,
                     width: 76,
                     alignment: Alignment.center,
-                    margin: const EdgeInsets.only(top: 400, bottom: 24),
+                    margin: const EdgeInsets.only(top: 600, bottom: 24),
                     decoration: BoxDecoration(
                         color: const Color.fromRGBO(46, 55, 73, 1),
                         borderRadius: BorderRadius.circular(38)),

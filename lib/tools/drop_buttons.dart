@@ -1485,49 +1485,66 @@ class Expectancy extends StatefulWidget {
 class _ExpectancyState extends State<Expectancy> {
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String?>(
-      isExpanded: true,
-      value: expectancyButton,
-      icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black87),
-      elevation: 16,
-      style: const TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-          hintText: 'Expectancy',
-          filled: true,
-          fillColor: Colors.transparent,
-          //prefixIcon: Icon(Icons.mail),
-          contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.black87, width: 0.2),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.black87, width: 0.2),
-          )),
-      onChanged: (String? newValue) {
-        setState(() {
-          expectancyButton = newValue!;
-        });
-      },
-      items: <String>[
-        '1 year',
-        '2 years',
-        '3 years',
-        '4 years',
-        '5 years',
-        '6 years',
-        '7 years',
-        '8 years',
-        '9 years',
-        '10 years'
-      ].map<DropdownMenuItem<String>>((String val) {
-        return DropdownMenuItem<String>(
-          value: val,
-          child: Text(val),
-        );
-      }).toList(),
-    );
+    return (expectancyButton != null)
+        ? GestureDetector(
+            onTap: () {
+              setState(() {
+                expectancyButton = null;
+              });
+            },
+            child: Container(
+                alignment: Alignment.centerLeft,
+                height: 50,
+                padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.black87, width: 0.2),
+                ),
+                child: Text(expectancyButton!)),
+          )
+        : DropdownButtonFormField<String?>(
+            isExpanded: true,
+            value: expectancyButton,
+            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black87),
+            elevation: 16,
+            style: const TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+                hintText: 'Expectancy',
+                filled: true,
+                fillColor: Colors.transparent,
+                //prefixIcon: Icon(Icons.mail),
+                contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.black87, width: 0.2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.black87, width: 0.2),
+                )),
+            onChanged: (String? newValue) {
+              setState(() {
+                expectancyButton = newValue!;
+              });
+            },
+            items: <String>[
+              '1 year',
+              '2 years',
+              '3 years',
+              '4 years',
+              '5 years',
+              '6 years',
+              '7 years',
+              '8 years',
+              '9 years',
+              '10 years'
+            ].map<DropdownMenuItem<String>>((String val) {
+              return DropdownMenuItem<String>(
+                value: val,
+                child: Text(val),
+              );
+            }).toList(),
+          );
   }
 }
 

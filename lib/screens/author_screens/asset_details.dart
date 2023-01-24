@@ -1,5 +1,6 @@
 import 'package:OMTECH/screens/author_screens/asset_work_orders.dart';
 import 'package:OMTECH/screens/author_screens/author_home.dart';
+import 'package:OMTECH/screens/author_screens/create_asset.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +70,7 @@ class AssetDetails extends StatefulWidget {
   @override
   // ignore: no_logic_in_create_state
   State<AssetDetails> createState() => _AssetDetailsState(
+      assetId: assetId,
       date: date,
       id: id,
       name: name,
@@ -89,6 +91,7 @@ class AssetDetails extends StatefulWidget {
 class _AssetDetailsState extends State<AssetDetails> {
   _AssetDetailsState(
       {Key? key,
+      required this.assetId,
       required this.date,
       required this.id,
       required this.name,
@@ -105,7 +108,8 @@ class _AssetDetailsState extends State<AssetDetails> {
       required this.expectancy,
       required this.details});
 
-  String date,
+  String assetId,
+      date,
       id,
       name,
       location,
@@ -242,7 +246,7 @@ class _AssetDetailsState extends State<AssetDetails> {
               elevation: 0,
               content: Container(
                   width: 360,
-                  height: 320,
+                  height: 400,
                   padding: const EdgeInsets.all(15),
                   alignment: Alignment.topCenter,
                   decoration: BoxDecoration(
@@ -326,6 +330,28 @@ class _AssetDetailsState extends State<AssetDetails> {
                               Container(
                                   child: Text(
                                 manf_phone,
+                                style: TextStyle(fontSize: 14),
+                              )),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                          width: 240,
+                          child: Row(
+                            children: [
+                              Container(
+                                  width: 120,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Web_Link:',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500),
+                                  )),
+                              Container(
+                                  child: Text(
+                                manf_web,
                                 style: TextStyle(fontSize: 14),
                               )),
                             ],
@@ -554,17 +580,40 @@ class _AssetDetailsState extends State<AssetDetails> {
                                   const SizedBox(
                                     width: 6,
                                   ),
-                                  Container(
-                                      width: 130,
-                                      alignment: Alignment.centerLeft,
-                                      child: const Text(
-                                        'Update Asset Details',
-                                        textAlign: TextAlign.start,
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Color.fromRGBO(0, 122, 255, 1)),
-                                      )),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) => EditAsset(
+                                                  assetId: assetId,
+                                                  date: date,
+                                                  id: id,
+                                                  name: name,
+                                                  project: project,
+                                                  design: design,
+                                                  serial: serial,
+                                                  location: location,
+                                                  model: model,
+                                                  status: status,
+                                                  system: system,
+                                                  subsystem: subsystem,
+                                                  type: type,
+                                                  engineer: engineer,
+                                                  expectancy: expectancy,
+                                                  details: details)));
+                                    },
+                                    child: Container(
+                                        width: 130,
+                                        alignment: Alignment.centerLeft,
+                                        child: const Text(
+                                          'Update Asset Details',
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Color.fromRGBO(
+                                                  0, 122, 255, 1)),
+                                        )),
+                                  ),
                                 ],
                               ),
                             )

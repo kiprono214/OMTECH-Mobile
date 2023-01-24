@@ -19,7 +19,7 @@ class BackPress extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => AuthorHome()));
+            .push(MaterialPageRoute(builder: (context) => CompanyHome()));
         _selectPage(context, ref, 'profile');
       },
       child: const Icon(

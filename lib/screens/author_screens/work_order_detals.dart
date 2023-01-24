@@ -93,9 +93,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     super.initState();
     getImage(imageId);
     getMedia();
-    if (widget.imgUrl == '') {
-      getImg();
-    }
+    getVideos();
   }
 
   Color imagesTab = Color.fromRGBO(0, 122, 255, 1);
@@ -151,6 +149,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   }
 
   String newUrl = '';
+
+  Color leftClick = Colors.black54;
+  Color rightClick = Colors.orange;
 
   @override
   Widget build(BuildContext context) {
@@ -580,6 +581,26 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                               onTap: () {
                                 setState(() {
                                   visible = false;
+                                  videosTab = Color.fromRGBO(55, 56, 59, 0.3);
+                                  imagesTab = Color.fromRGBO(0, 122, 255, 1);
+
+                                  imageWeight = FontWeight.w600;
+                                  videoWeight = FontWeight.w500;
+
+                                  imageCon = Colors.white;
+                                  videoCon = Colors.transparent;
+
+                                  index = 0;
+                                  tabClicked = 'images';
+                                  _controller!.dispose();
+
+                                  leftClick = Colors.black45;
+
+                                  if ((index + 1) == imageUrls.length) {
+                                    rightClick = Colors.black45;
+                                  } else {
+                                    rightClick = Colors.orange;
+                                  }
                                 });
                               },
                               child: Icon(
@@ -598,6 +619,15 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                         ],
                       ),
                       StatefulBuilder(builder: (context, setState) {
+                        if (tabClicked == 'videos') {
+                          if ((index + 1) == videoUrls.length) {
+                            setState(
+                              () {
+                                rightClick = Colors.black45;
+                              },
+                            );
+                          }
+                        }
                         return Column(
                           children: [
                             Align(
@@ -628,6 +658,19 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                             videoCon = Colors.transparent;
 
                                             tabClicked = 'images';
+
+                                            _controller!.dispose();
+
+                                            index = 0;
+
+                                            leftClick = Colors.black45;
+
+                                            if ((index + 1) ==
+                                                imageUrls.length) {
+                                              rightClick = Colors.black45;
+                                            } else {
+                                              rightClick = Colors.orange;
+                                            }
                                           },
                                         );
                                       },
@@ -667,6 +710,17 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                             videoCon = Colors.white;
 
                                             tabClicked = 'videos';
+
+                                            index = 0;
+
+                                            leftClick = Colors.black45;
+
+                                            if ((index + 1) ==
+                                                videoUrls.length) {
+                                              rightClick = Colors.black45;
+                                            } else {
+                                              rightClick = Colors.orange;
+                                            }
                                           },
                                         );
                                       },
@@ -699,26 +753,56 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // handle tap event
-                                      },
-                                      child: Container(
-                                        // padding: EdgeInsets.only(top: 12),
-                                        alignment: Alignment.center,
-                                        height: 30,
-                                        width: 30,
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange,
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                        ),
-                                        child: Icon(
-                                          Icons.keyboard_arrow_left,
-                                          size: 24,
-                                          color: Colors.white,
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          // handle tap event
+                                          if (index > 0) {
+                                            setState(
+                                              () {
+                                                index = index - 1;
+                                                if (tabClicked == 'images') {
+                                                  if ((index + 1) ==
+                                                      imageUrls.length) {
+                                                    rightClick = Colors.black45;
+                                                  } else {
+                                                    rightClick = Colors.orange;
+                                                  }
+                                                } else {
+                                                  if ((index + 1) ==
+                                                      videoUrls.length) {
+                                                    rightClick = Colors.black45;
+                                                  } else {
+                                                    rightClick = Colors.orange;
+                                                  }
+                                                }
+                                                if (index > 0) {
+                                                  leftClick = Colors.orange;
+                                                } else {
+                                                  leftClick = Colors.black45;
+                                                }
+                                              },
+                                            );
+                                          }
+                                        },
+                                        child: Container(
+                                          // padding: EdgeInsets.only(top: 12),
+                                          alignment: Alignment.center,
+                                          height: 30,
+                                          width: 30,
+                                          decoration: BoxDecoration(
+                                            color: leftClick,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                          child: Icon(
+                                            Icons.keyboard_arrow_left,
+                                            size: 24,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -739,36 +823,192 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                                   imageUrls[index],
                                                   height: 270,
                                                   width: 240,
-                                                  fit: BoxFit.cover,
+                                                  fit: BoxFit.contain,
                                                 )
-                                          : FutureBuilder(
-                                              builder: (context, snapshot) {
-                                              return Container(
-                                                color: Color.fromRGBO(
-                                                    226, 240, 255, 1),
-                                                height: double.infinity,
-                                                width: double.infinity,
+                                          : StatefulBuilder(
+                                              builder: (context, setState) {
+                                              _controller =
+                                                  VideoPlayerController.network(
+                                                      videoUrls[index]);
+                                              _controller!.pause();
+                                              _controller!.setLooping(false);
+                                              _controller!.setVolume(0.5);
+                                              _initializeVideoPlayerFuture =
+                                                  _controller!.initialize();
+                                              return FutureBuilder(
+                                                future:
+                                                    _initializeVideoPlayerFuture,
+                                                builder: (context, snapshot) {
+                                                  if (snapshot
+                                                          .connectionState ==
+                                                      ConnectionState.done) {
+                                                    // _controller!.initialize();
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        setState(() {
+                                                          // If the video is playing, pause it.
+                                                          // if (_controller!.value.isPlaying) {
+                                                          //   _controller!.pause();
+                                                          // } else {
+                                                          //   // If the video is paused, play it.
+                                                          //   _controller!.play();
+                                                          // }
+                                                        });
+                                                      },
+                                                      child: Stack(
+                                                        children: [
+                                                          Container(
+                                                              height: double
+                                                                  .infinity,
+                                                              width: double
+                                                                  .infinity,
+                                                              alignment:
+                                                                  Alignment
+                                                                      .center,
+                                                              child: _controller!
+                                                                      .value
+                                                                      .isInitialized
+                                                                  ? ClipRRect(
+                                                                      child:
+                                                                          FittedBox(
+                                                                        fit: BoxFit
+                                                                            .fitHeight,
+                                                                        child: Container(
+                                                                            width:
+                                                                                600,
+                                                                            height:
+                                                                                360,
+                                                                            child:
+                                                                                VideoPlayer(_controller!)),
+                                                                      ),
+                                                                    )
+                                                                  : SizedBox()),
+                                                          Container(
+                                                            alignment: Alignment
+                                                                .center,
+                                                            height:
+                                                                double.infinity,
+                                                            child: StatefulBuilder(
+                                                                builder: (context,
+                                                                    setState) {
+                                                              return GestureDetector(
+                                                                  onTap: () {
+                                                                    if (_controller!
+                                                                        .value
+                                                                        .isPlaying) {
+                                                                      _controller!
+                                                                          .pause();
+                                                                      setState(
+                                                                          () {
+                                                                        play =
+                                                                            'no';
+                                                                      });
+                                                                    } else {
+                                                                      // If the video is paused, play it.
+                                                                      _controller!
+                                                                          .play();
+                                                                      setState(
+                                                                          () {
+                                                                        play =
+                                                                            'yes';
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                  child: _controller!
+                                                                          .value
+                                                                          .isPlaying
+                                                                      ? const Icon(
+                                                                          Icons
+                                                                              .pause,
+                                                                          color:
+                                                                              Colors.transparent,
+                                                                          size:
+                                                                              50,
+                                                                        )
+                                                                      : const Icon(
+                                                                          Icons
+                                                                              .play_arrow,
+                                                                          color:
+                                                                              Colors.orange,
+                                                                          size:
+                                                                              50,
+                                                                        ));
+                                                            }),
+                                                            // height: 168,
+                                                            width: 280,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+
+                                                    // return AspectRatio(
+                                                    //   aspectRatio: _controller!.value.aspectRatio,
+                                                    //   child: VideoPlayer(_controller!),
+                                                    // );
+                                                  } else {
+                                                    return Container(
+                                                      height: 300,
+                                                      width: 400,
+                                                      alignment:
+                                                          Alignment.center,
+                                                      child:
+                                                          const CircularProgressIndicator(
+                                                        color: Colors.orange,
+                                                      ),
+                                                    );
+                                                  }
+                                                },
                                               );
                                             })),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // handle tap event
-                                      },
-                                      child: Container(
-                                        height: 30,
-                                        width: 30,
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange,
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                        ),
-                                        child: Icon(
-                                          Icons.keyboard_arrow_right,
-                                          size: 24,
-                                          color: Colors.white,
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          // handle tap event
+                                          if (tabClicked == 'images') {
+                                            if ((index + 1) <
+                                                imageUrls.length) {
+                                              setState(
+                                                () {
+                                                  index += 1;
+                                                  if ((index + 1) ==
+                                                      imageUrls.length) {
+                                                    rightClick = Colors.black45;
+                                                  } else {
+                                                    rightClick = Colors.orange;
+                                                  }
+                                                  if (index > 0) {
+                                                    leftClick = Colors.orange;
+                                                  }
+                                                },
+                                              );
+                                            }
+                                          } else {
+                                            if (index < videoUrls.length) {
+                                              setState(
+                                                () {
+                                                  index += 1;
+                                                },
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: Container(
+                                          height: 30,
+                                          width: 30,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: rightClick,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                          child: Icon(
+                                            Icons.keyboard_arrow_right,
+                                            size: 24,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -798,7 +1038,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   String play = 'no';
 
   Future<void> initVideoPlayer() async {
-    _controller = VideoPlayerController.network(newUrl);
+    _controller = VideoPlayerController.network(videoUrls[index]);
     _controller!.pause();
     _controller!.setLooping(false);
     _controller!.setVolume(0.5);
@@ -820,14 +1060,14 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   Color tapped = Color.fromRGBO(0, 122, 255, 1);
   Color tap = Color.fromRGBO(42, 46, 49, 0.4);
 
-  List<List> images = [];
-  List<List> videos = [];
+  List<String> images = [];
+  List<String> videos = [];
 
   TextEditingController viewImg = TextEditingController(text: '');
 
   Future<void> getMedia() async {
-    List<List> temp = [];
-    List<List> tempVideo = [];
+    List<String> temp = [];
+
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
@@ -836,16 +1076,31 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
         .get()
         .then((value) {
       for (var doc in value.docs) {
-        List obj = [doc.id, doc.get('name'), doc.get('type')];
+        String obj = doc.id;
 
         temp.add(obj);
       }
       setState(() {
         images.clear();
         images.addAll(temp);
+        print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
         print(images.length.toString());
       });
+
+      for (var url in images) {
+        getImage(url);
+      }
+
+      if ((index + 1) == imageUrls.length) {
+        setState(() {
+          rightClick == Colors.black45;
+        });
+      }
     });
+  }
+
+  Future<void> getVideos() async {
+    List<String> tempVideo = [];
 
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
@@ -855,29 +1110,56 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
         .get()
         .then((value) {
       for (var doc in value.docs) {
-        List obj = [doc.id, doc.get('name'), doc.get('type')];
+        String obj = doc.id;
 
-        temp.add(obj);
+        tempVideo.add(obj);
       }
       setState(() {
         videos.clear();
         videos.addAll(tempVideo);
+        print(
+            ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
         print(videos.length.toString());
       });
+
+      for (var url in videos) {
+        getVideo(url);
+      }
     });
+  }
+
+  void getUrls() {
+    for (var url in images) {
+      getImage(url);
+    }
+
+    for (var url in videos) {
+      getVideo(url);
+    }
   }
 
   Future<void> getImage(String imageId) async {
     String woId = widget.id;
+    print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
+    print(woId);
     final ref =
         FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
-    await ref.getDownloadURL().then((value) => setState(() {
-          setState(() {
-            newUrl = value;
-            print('----------------------------------------------------');
-            print(newUrl);
-          });
-        }));
+    await ref.getDownloadURL().then((value) {
+      imageUrls.add(value);
+      print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
+      print(imageUrls.length);
+    });
+  }
+
+  Future<void> getVideo(String imageId) async {
+    String woId = widget.id;
+    final ref =
+        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    await ref.getDownloadURL().then((value) {
+      videoUrls.add(value);
+      print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,:::::::::');
+      print(videoUrls.length);
+    });
   }
 
   int index = 0;
@@ -891,6 +1173,116 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   void forwardPress() {
     // _initializeVideoPlayer = _controller!.initialize();
+  }
+
+  Widget getConChild() {
+    if (type == 'images') {
+      if (newUrl == '') {
+        newUrl = widget.imgUrl;
+      }
+      return Image.network(
+        newUrl,
+        height: double.infinity,
+        width: double.infinity,
+      );
+    } else {
+      // _initializeVideoPlayerFuture = _controller!.initialize();
+      // initVideoPlayer();
+      _controller = VideoPlayerController.network(newUrl);
+      _controller!.pause();
+      _controller!.setLooping(false);
+      _controller!.setVolume(0.5);
+      _initializeVideoPlayerFuture = _controller!.initialize();
+
+      return FutureBuilder(
+        future: _initializeVideoPlayerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // _controller!.initialize();
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  // If the video is playing, pause it.
+                  // if (_controller!.value.isPlaying) {
+                  //   _controller!.pause();
+                  // } else {
+                  //   // If the video is paused, play it.
+                  //   _controller!.play();
+                  // }
+                });
+              },
+              child: Stack(
+                children: [
+                  Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      child: _controller!.value.isInitialized
+                          ? ClipRRect(
+                              child: FittedBox(
+                                fit: BoxFit.fitHeight,
+                                child: Container(
+                                    width: 600,
+                                    height: 360,
+                                    child: VideoPlayer(_controller!)),
+                              ),
+                            )
+                          : SizedBox()),
+                  Container(
+                    alignment: Alignment.center,
+                    height: double.infinity,
+                    child: StatefulBuilder(builder: (context, setState) {
+                      return GestureDetector(
+                          onTap: () {
+                            if (_controller!.value.isPlaying) {
+                              _controller!.pause();
+                              setState(() {
+                                play = 'no';
+                              });
+                            } else {
+                              // If the video is paused, play it.
+                              _controller!.play();
+                              setState(() {
+                                play = 'yes';
+                              });
+                            }
+                          },
+                          child: _controller!.value.isPlaying
+                              ? const Icon(
+                                  Icons.pause,
+                                  color: Colors.transparent,
+                                  size: 50,
+                                )
+                              : const Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.orange,
+                                  size: 50,
+                                ));
+                    }),
+                    // height: 168,
+                    width: 280,
+                  ),
+                ],
+              ),
+            );
+
+            // return AspectRatio(
+            //   aspectRatio: _controller!.value.aspectRatio,
+            //   child: VideoPlayer(_controller!),
+            // );
+          } else {
+            return Container(
+              height: 300,
+              width: 400,
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(
+                color: Colors.orange,
+              ),
+            );
+          }
+        },
+      );
+    }
   }
 }
 
@@ -1011,12 +1403,17 @@ class _CommentBoxState extends State<CommentBox> {
                     SizedBox(
                       width: 30,
                     ),
-                    Text(
-                      comment.get('comment'),
-                      style: TextStyle(
-                          fontStyle: FontStyle.normal,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400),
+                    Container(
+                      width: 270,
+                      margin: const EdgeInsets.only(right: 20),
+                      alignment: Alignment.center,
+                      child: Text(
+                        comment.get('comment'),
+                        style: TextStyle(
+                            fontStyle: FontStyle.normal,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400),
+                      ),
                     )
                   ],
                 )
@@ -1027,146 +1424,3 @@ class _CommentBoxState extends State<CommentBox> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Widget getConChild() {
-//   if (type == 'images') {
-//     if (newUrl == '') {
-//       newUrl = widget.imgUrl;
-//     }
-//     return Image.network(
-//       newUrl,
-//       height: double.infinity,
-//       width: double.infinity,
-//     );
-//   } else {
-//     // _initializeVideoPlayerFuture = _controller!.initialize();
-//     // initVideoPlayer();
-//     _controller = VideoPlayerController.network(newUrl);
-//     _controller!.pause();
-//     _controller!.setLooping(false);
-//     _controller!.setVolume(0.5);
-//     _initializeVideoPlayerFuture = _controller!.initialize();
-
-//     return FutureBuilder(
-//       future: _initializeVideoPlayerFuture,
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.done) {
-//           // _controller!.initialize();
-//           return GestureDetector(
-//             onTap: () {
-//               setState(() {
-//                 // If the video is playing, pause it.
-//                 // if (_controller!.value.isPlaying) {
-//                 //   _controller!.pause();
-//                 // } else {
-//                 //   // If the video is paused, play it.
-//                 //   _controller!.play();
-//                 // }
-//               });
-//             },
-//             child: Stack(
-//               children: [
-//                 Container(
-//                     height: double.infinity,
-//                     width: double.infinity,
-//                     alignment: Alignment.center,
-//                     child: _controller!.value.isInitialized
-//                         ? ClipRRect(
-//                             child: FittedBox(
-//                               fit: BoxFit.fitHeight,
-//                               child: Container(
-//                                   width: 600,
-//                                   height: 360,
-//                                   child: VideoPlayer(_controller!)),
-//                             ),
-//                           )
-//                         : SizedBox()),
-//                 Container(
-//                   alignment: Alignment.center,
-//                   height: double.infinity,
-//                   child: StatefulBuilder(builder: (context, setState) {
-//                     return GestureDetector(
-//                         onTap: () {
-//                           if (_controller!.value.isPlaying) {
-//                             _controller!.pause();
-//                             setState(() {
-//                               play = 'no';
-//                             });
-//                           } else {
-//                             // If the video is paused, play it.
-//                             _controller!.play();
-//                             setState(() {
-//                               play = 'yes';
-//                             });
-//                           }
-//                         },
-//                         child: _controller!.value.isPlaying
-//                             ? const Icon(
-//                                 Icons.pause,
-//                                 color: Colors.transparent,
-//                                 size: 50,
-//                               )
-//                             : const Icon(
-//                                 Icons.play_arrow,
-//                                 color: Colors.orange,
-//                                 size: 50,
-//                               ));
-//                   }),
-//                   // height: 168,
-//                   width: 280,
-//                 ),
-//               ],
-//             ),
-//           );
-
-//           // return AspectRatio(
-//           //   aspectRatio: _controller!.value.aspectRatio,
-//           //   child: VideoPlayer(_controller!),
-//           // );
-//         } else {
-//           return Container(
-//             height: 300,
-//             width: 400,
-//             alignment: Alignment.center,
-//             child: const CircularProgressIndicator(
-//               color: Colors.orange,
-//             ),
-//           );
-//         }
-//       },
-//     );
-//   }
-// }
