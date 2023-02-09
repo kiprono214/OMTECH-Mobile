@@ -1,4 +1,5 @@
 // import 'package:OMTECH/screens/author_screens/work_order_detals.dart';
+import 'package:OMTECH/screens/company_screens/work_order_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -215,6 +216,7 @@ class _ReactiveMState extends State<ReactiveM> {
                               return WorkOrderClick(
                                 priority: data['priority'],
                                 name: data['name'],
+                                worker: data['worker'],
                                 category: data['category'],
                                 address: data['address'],
                                 date: data['date'],
@@ -280,6 +282,7 @@ class WorkOrderClick extends ConsumerStatefulWidget {
   WorkOrderClick(
       {required this.name,
       required this.category,
+      required this.worker,
       required this.date,
       required this.address,
       required this.project,
@@ -301,6 +304,7 @@ class WorkOrderClick extends ConsumerStatefulWidget {
   String priority;
 
   String name;
+  String worker;
   String category;
   String date;
   String address;
@@ -319,7 +323,6 @@ class WorkOrderClick extends ConsumerStatefulWidget {
   String id;
   String assetId;
   String imgUrl = '';
-
   @override
   ConsumerState<WorkOrderClick> createState() => _WorkOrderClickState();
 }
@@ -401,28 +404,29 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
     // TODO: implement build
     return GestureDetector(
         onTap: () {
-          // Navigator.of(context).push(MaterialPageRoute(
-          //     builder: (context) => WorkOrderDetails(
-          //         name: widget.name,
-          //         category: widget.category,
-          //         date: widget.date,
-          //         address: widget.address,
-          //         project: widget.project,
-          //         author: widget.author,
-          //         client: widget.client,
-          //         date_created: widget.date_created,
-          //         company: widget.company,
-          //         room: widget.room,
-          //         creator: widget.creator,
-          //         frequency: widget.frequency,
-          //         nature: widget.nature,
-          //         lastMaintained: widget.lastMaintained,
-          //         asset: widget.asset,
-          //         engineer: widget.engineer,
-          //         id: widget.id,
-          //         assetId: widget.assetId,
-          //         assetDesignRef: assetDesignRef,
-          //         imgUrl: imgUrl)));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => WorkOrderDetails(
+                  worker: widget.worker,
+                  name: widget.name,
+                  category: widget.category,
+                  date: widget.date,
+                  address: widget.address,
+                  project: widget.project,
+                  author: widget.author,
+                  client: widget.client,
+                  date_created: widget.date_created,
+                  company: widget.company,
+                  room: widget.room,
+                  creator: widget.creator,
+                  frequency: widget.frequency,
+                  nature: widget.nature,
+                  lastMaintained: widget.lastMaintained,
+                  asset: widget.asset,
+                  engineer: widget.engineer,
+                  id: widget.id,
+                  assetId: widget.assetId,
+                  assetDesignRef: assetDesignRef,
+                  imgUrl: imgUrl)));
         },
         child: Stack(
           children: [

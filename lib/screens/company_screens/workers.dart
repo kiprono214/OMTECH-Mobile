@@ -1,3 +1,4 @@
+import 'package:OMTECH/screens/company_screens/create_worker.dart';
 import 'package:OMTECH/screens/company_screens/worker_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -94,62 +95,79 @@ class _TabsState extends ConsumerState<Tabs> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 42,
-      decoration: BoxDecoration(
-          color: const Color.fromRGBO(226, 240, 255, 1),
-          borderRadius: BorderRadius.circular(10)),
-      padding:
-          const EdgeInsets.only(left: 4.6, top: 3.85, bottom: 3.85, right: 4.6),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectPage(context, ref, 'projects');
-                current = 'Projects';
-              });
-            },
-            child: Container(
-                width: 150,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: getColor('Projects'),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Projects',
-                  style: TextStyle(
-                      color: getTextColor('Projects'),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700),
-                )),
-          ),
-          Expanded(
-            child: GestureDetector(
+    return Scaffold(
+      floatingActionButton: GestureDetector(
+        onTap: () {},
+        child: Container(
+            margin: const EdgeInsets.only(bottom: 100),
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: const Color.fromRGBO(255, 174, 0, 1)),
+            child: Icon(
+              Icons.add_rounded,
+              color: Colors.white,
+              size: 50,
+            )),
+      ),
+      body: Container(
+        height: 42,
+        decoration: BoxDecoration(
+            color: const Color.fromRGBO(226, 240, 255, 1),
+            borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.only(
+            left: 4.6, top: 3.85, bottom: 3.85, right: 4.6),
+        child: Row(
+          children: [
+            GestureDetector(
               onTap: () {
                 setState(() {
-                  _selectPage(context, ref, 'engineers');
-                  current = 'Engineers';
+                  _selectPage(context, ref, 'projects');
+                  current = 'Projects';
                 });
               },
               child: Container(
                   width: 150,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: getColor('Engineers'),
+                    color: getColor('Projects'),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Asset Engineers',
+                    'Projects',
                     style: TextStyle(
-                        color: getTextColor('Engineers'),
+                        color: getTextColor('Projects'),
                         fontSize: 16,
                         fontWeight: FontWeight.w700),
                   )),
             ),
-          )
-        ],
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectPage(context, ref, 'engineers');
+                    current = 'Engineers';
+                  });
+                },
+                child: Container(
+                    width: 150,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: getColor('Engineers'),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Asset Engineers',
+                      style: TextStyle(
+                          color: getTextColor('Engineers'),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700),
+                    )),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -368,6 +386,24 @@ class _WorkersState extends State<Workers> {
         return false;
       },
       child: Scaffold(
+        floatingActionButton: GestureDetector(
+          onTap: () {
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (context) => CreateWorker()));
+          },
+          child: Container(
+              margin: const EdgeInsets.only(bottom: 100),
+              height: 60,
+              width: 60,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: const Color.fromRGBO(255, 174, 0, 1)),
+              child: Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 50,
+              )),
+        ),
         body: Container(
           color: Colors.white,
           alignment: Alignment.topCenter,
@@ -476,21 +512,24 @@ class _WorkersState extends State<Workers> {
                     ],
                   ),
                 ),
-                Column(
-                    children: workers
-                        .map((DocumentSnapshot document) {
-                          Map<String, dynamic> data =
-                              document.data() as Map<String, dynamic>;
-                          return WorkerClick(
-                            id: document.id,
-                            name: data['name'],
-                            email: data['email'],
-                            phone: data['phone'],
-                            address: data['address'],
-                          );
-                        })
-                        .toList()
-                        .cast())
+                Container(
+                  margin: const EdgeInsets.only(bottom: 120),
+                  child: Column(
+                      children: workers
+                          .map((DocumentSnapshot document) {
+                            Map<String, dynamic> data =
+                                document.data() as Map<String, dynamic>;
+                            return WorkerClick(
+                              id: document.id,
+                              name: data['name'],
+                              email: data['email'],
+                              phone: data['phone'],
+                              address: data['address'],
+                            );
+                          })
+                          .toList()
+                          .cast()),
+                )
                 // .toList()
                 // .cast(),
               ],
@@ -553,7 +592,7 @@ class _WorkerClickState extends State<WorkerClick> {
     String id = widget.id;
     imgUrl = await FirebaseStorage.instance
         .ref()
-        .child('engineers/$id')
+        .child('workers/$id')
         .getDownloadURL();
     setState(() {});
   }

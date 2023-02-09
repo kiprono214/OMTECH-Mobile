@@ -1,47 +1,41 @@
-// import 'package:OMTECH/screens/author_screens/work_order_detals.dart';
+import 'package:OMTECH/screens/company_screens/create_work_order.dart';
+import 'package:OMTECH/screens/company_screens/work_order_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../authentication/login.dart';
-import '../dashScreens/home.dart';
-import 'company_home.dart';
-
-class BackPress extends ConsumerWidget {
-  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
-    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
-      ref.read(selectedNavPageNameProvider.state).state = pageName;
-    }
-  }
+class AssetWorkOrders extends StatefulWidget {
+  AssetWorkOrders({Key? key, required this.uniqueId}) : super(key: key);
+  String uniqueId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-        onTap: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => CompanyHome()));
-        },
-        child: Container(
-            width: 60,
-            alignment: Alignment.bottomLeft,
-            child: const Icon(Icons.arrow_back)));
-  }
+  State<AssetWorkOrders> createState() => _AssetWorkOrdersState();
 }
 
-class ActionN extends StatefulWidget {
-  const ActionN({Key? key}) : super(key: key);
+String id = '';
 
-  @override
-  State<ActionN> createState() => _ActionNState();
-}
-
-class _ActionNState extends State<ActionN> {
+class _AssetWorkOrdersState extends State<AssetWorkOrders> {
   final TextEditingController searchController = TextEditingController();
+
+  List<DocumentSnapshot> documents = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    setState(() {
+      id = widget.uniqueId;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .where('asset_id', isEqualTo: widget.uniqueId)
+        .snapshots();
     searchController.addListener(() {
       setState(() {});
     });
@@ -80,6 +74,25 @@ class _ActionNState extends State<ActionN> {
         return true;
       },
       child: Scaffold(
+        floatingActionButton: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: ((context) =>
+                    CreateWorkOrder(assetId: widget.uniqueId))));
+          },
+          child: Container(
+              margin: const EdgeInsets.only(bottom: 100),
+              height: 60,
+              width: 60,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: const Color.fromRGBO(255, 174, 0, 1)),
+              child: Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 50,
+              )),
+        ),
         backgroundColor: Colors.white,
         body: Container(
           color: Colors.white,
@@ -100,12 +113,19 @@ class _ActionNState extends State<ActionN> {
                       ),
                       Stack(
                         children: [
-                          BackPress(),
+                          GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                  width: 60,
+                                  alignment: Alignment.bottomLeft,
+                                  child: const Icon(Icons.arrow_back))),
                           Container(
                             width: double.infinity,
                             alignment: Alignment.center,
                             child: const Text(
-                              'Action Needed',
+                              'Work Orders',
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 22),
                             ),
@@ -213,6 +233,8 @@ class _ActionNState extends State<ActionN> {
                                   document.data()! as Map<String, dynamic>;
 
                               return WorkOrderClick(
+                                worker: data['worker'],
+                                status: data['status'],
                                 priority: data['priority'],
                                 name: data['name'],
                                 category: data['category'],
@@ -248,60 +270,39 @@ class _ActionNState extends State<ActionN> {
       ),
     );
   }
-
-  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
-      .collection('new_work_orders')
-      .where('nature', isEqualTo: 'Action Needed')
-      .where('assignee', isEqualTo: username)
-      .snapshots();
-
-  List projects = [];
-
-  Future<dynamic> getData(String email, String password) async {
-    //  final DocumentReference user =
-    FirebaseFirestore.instance
-        .collection("projects")
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      for (var doc in querySnapshot.docs) {
-        String title = doc.get('title');
-        if (title.contains(searchController.text)) {
-          projects.add(doc);
-        }
-      }
-    });
-  }
-
-  List<DocumentSnapshot> documents = [];
-  List<DocumentSnapshot> documentsFiltered = [];
 }
 
 class WorkOrderClick extends ConsumerStatefulWidget {
-  WorkOrderClick(
-      {required this.name,
-      required this.category,
-      required this.date,
-      required this.address,
-      required this.project,
-      required this.author,
-      required this.client,
-      required this.date_created,
-      required this.company,
-      required this.room,
-      required this.creator,
-      required this.frequency,
-      required this.nature,
-      required this.lastMaintained,
-      required this.asset,
-      required this.engineer,
-      required this.id,
-      required this.assetId,
-      required this.priority});
+  WorkOrderClick({
+    required this.name,
+    required this.category,
+    required this.date,
+    required this.address,
+    required this.project,
+    required this.author,
+    required this.client,
+    required this.date_created,
+    required this.company,
+    required this.room,
+    required this.creator,
+    required this.frequency,
+    required this.nature,
+    required this.lastMaintained,
+    required this.asset,
+    required this.engineer,
+    required this.id,
+    required this.status,
+    required this.assetId,
+    required this.worker,
+    required this.priority,
+  });
 
   String priority;
 
   String name;
   String category;
+  String status;
+  String worker;
   String date;
   String address;
   String project;
@@ -326,12 +327,6 @@ class WorkOrderClick extends ConsumerStatefulWidget {
 
 class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
   _WorkOrderClickState();
-
-  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
-    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
-      ref.read(selectedNavPageNameProvider.state).state = pageName;
-    }
-  }
 
   void getAssets(String title) async {
     List assetsList = [];
@@ -401,28 +396,33 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
     // TODO: implement build
     return GestureDetector(
         onTap: () {
-          // Navigator.of(context).push(MaterialPageRoute(
-          //     builder: (context) => WorkOrderDetails(
-          //         name: widget.name,
-          //         category: widget.category,
-          //         date: widget.date,
-          //         address: widget.address,
-          //         project: widget.project,
-          //         author: widget.author,
-          //         client: widget.client,
-          //         date_created: widget.date_created,
-          //         company: widget.company,
-          //         room: widget.room,
-          //         creator: widget.creator,
-          //         frequency: widget.frequency,
-          //         nature: widget.nature,
-          //         lastMaintained: widget.lastMaintained,
-          //         asset: widget.asset,
-          //         engineer: widget.engineer,
-          //         id: widget.id,
-          //         assetId: widget.assetId,
-          //         assetDesignRef: assetDesignRef,
-          //         imgUrl: imgUrl)));
+          if (imgUrl == '') {
+            getImg();
+          }
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => WorkOrderDetails(
+                  // status: widget.status,
+                  name: widget.name,
+                  worker: widget.worker,
+                  category: widget.category,
+                  date: widget.date,
+                  address: widget.address,
+                  project: widget.project,
+                  author: widget.author,
+                  client: widget.client,
+                  date_created: widget.date_created,
+                  company: widget.company,
+                  room: widget.room,
+                  creator: widget.creator,
+                  frequency: widget.frequency,
+                  nature: widget.nature,
+                  lastMaintained: widget.lastMaintained,
+                  asset: widget.asset,
+                  engineer: widget.engineer,
+                  id: widget.id,
+                  assetId: widget.assetId,
+                  assetDesignRef: assetDesignRef,
+                  imgUrl: imgUrl)));
         },
         child: Stack(
           children: [

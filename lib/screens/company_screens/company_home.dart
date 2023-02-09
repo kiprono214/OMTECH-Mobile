@@ -1,4 +1,9 @@
+import 'package:OMTECH/screens/company_screens/assets.dart';
+import 'package:OMTECH/screens/company_screens/assigned.dart';
+import 'package:OMTECH/screens/company_screens/create_asset.dart';
 import 'package:OMTECH/screens/company_screens/workers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -10,10 +15,15 @@ import 'package:OMTECH/screens/company_screens/home.dart';
 
 Widget _currentPage = MyWidget();
 
+String titleClick = '';
+
 final pages = <String, WidgetBuilder>{
   'home': (context) => const MyWidget(),
   'workers': (context) => const Workers(),
-  'profile': (context) => const Profile()
+  'profile': (context) => const Profile(),
+  'projects': ((context) => const Assigned()),
+  'assets': (context) => AssetsStream(title: titleClick),
+  // 'create asset': (context) => CreateAsset(),
 };
 
 final selectedNavPageNameProvider = StateProvider<String>((ref) {
@@ -40,92 +50,6 @@ class CompanyHome extends ConsumerStatefulWidget {
 class _CompanyHomeState extends ConsumerState<CompanyHome> {
   _CompanyHomeState({this.from});
   String? from;
-  static String selected = 'home';
-  static String visHome = 'true';
-  static String visProj = '';
-  static String projSel = '';
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
-  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
-    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
-      ref.read(selectedNavPageNameProvider.state).state = pageName;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    Color textColor(String select) {
-      if (select == selected) {
-        return const Color.fromRGBO(255, 174, 0, 1);
-      } else {
-        return Colors.white;
-      }
-    }
-
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: Scaffold(
-          backgroundColor: Colors.white,
-          body: Stack(
-            children: [
-              Content(
-                from: from,
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                    margin: const EdgeInsets.only(top: 400),
-                    child: BottomNav()),
-              ),
-              Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    height: 76,
-                    width: 76,
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.only(top: 400, bottom: 24),
-                    decoration: BoxDecoration(
-                        color: const Color.fromRGBO(46, 55, 73, 1),
-                        borderRadius: BorderRadius.circular(38)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/scan.svg',
-                          height: 26.67,
-                          width: 26.67,
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text('Scan',
-                            style: TextStyle(
-                                fontSize: 10, color: textColor('scan')))
-                      ],
-                    ),
-                  ))
-            ],
-          )),
-    );
-  }
-}
-
-class BottomNav extends ConsumerStatefulWidget {
-  const BottomNav({Key? key}) : super(key: key);
-
-  @override
-  ConsumerState<BottomNav> createState() => _BottomNavState();
-}
-
-class _BottomNavState extends ConsumerState<BottomNav> {
   String selected = 'home';
   String visHome = 'true';
   String visProj = '';
@@ -147,7 +71,7 @@ class _BottomNavState extends ConsumerState<BottomNav> {
     }
   }
 
-  SvgPicture getProjSvg(String selected) {
+  SvgPicture getWorkSvg(String selected) {
     if (selected == 'proj') {
       return SvgPicture.asset(
         'assets/images/Group 55609 (1).svg',
@@ -205,6 +129,201 @@ class _BottomNavState extends ConsumerState<BottomNav> {
     });
   }
 
+  SvgPicture getProjSvg(String selected) {
+    if (selected == 'proj') {
+      return SvgPicture.asset(
+        'assets/images/office bag (1).svg',
+        height: 24,
+        width: 24,
+      );
+    } else {
+      return SvgPicture.asset(
+        'assets/images/office bag.svg',
+        height: 24,
+        width: 24,
+      );
+    }
+  }
+
+  Color textColor(String select) {
+    if (select == selected) {
+      return const Color.fromRGBO(255, 174, 0, 1);
+    } else {
+      return Colors.white;
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    Color textColor(String select) {
+      if (select == selected) {
+        return const Color.fromRGBO(255, 174, 0, 1);
+      } else {
+        return Colors.white;
+      }
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(
+            children: [
+              Content(
+                from: from,
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                    margin: const EdgeInsets.only(top: 400),
+                    child: BottomNav()),
+              ),
+              Align(
+                  alignment: Alignment.bottomCenter,
+                  child: InkWell(
+                    onTap: () {
+                      _selectPage(context, ref, 'home');
+                    },
+                    child: Container(
+                      height: 76,
+                      width: 76,
+                      alignment: Alignment.center,
+                      margin: const EdgeInsets.only(top: 400, bottom: 24),
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(46, 55, 73, 1),
+                          borderRadius: BorderRadius.circular(38)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          getHomeSvg('home'),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text('Home',
+                              style: TextStyle(
+                                  fontSize: 10, color: textColor('home')))
+                        ],
+                      ),
+                    ),
+                  ))
+            ],
+          )),
+    );
+  }
+}
+
+class BottomNav extends ConsumerStatefulWidget {
+  const BottomNav({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<BottomNav> createState() => _BottomNavState();
+}
+
+class _BottomNavState extends ConsumerState<BottomNav> {
+  String selected = 'home';
+  String visWork = '';
+  String visProj = '';
+  String projSel = '';
+
+  SvgPicture getHomeSvg(String selected) {
+    if (selected == 'home') {
+      return SvgPicture.asset(
+        'assets/images/home (1).svg',
+        height: 24,
+        width: 24,
+      );
+    } else {
+      return SvgPicture.asset(
+        'assets/images/home.svg',
+        height: 24,
+        width: 24,
+      );
+    }
+  }
+
+  SvgPicture getWorkSvg(String selected) {
+    if (selected == 'workers') {
+      return SvgPicture.asset(
+        'assets/images/Group 55609 (1).svg',
+        height: 24,
+        width: 24,
+      );
+    } else {
+      return SvgPicture.asset(
+        'assets/images/Group 55609.svg',
+        height: 24,
+        width: 24,
+      );
+    }
+  }
+
+  BoxDecoration getVis(String visible) {
+    if (visible == 'true') {
+      return BoxDecoration(
+          color: const Color.fromRGBO(32, 29, 29, 1),
+          borderRadius: BorderRadius.circular(20));
+    } else {
+      return const BoxDecoration(color: Colors.transparent);
+    }
+  }
+
+  late List<Widget> _pages;
+
+  late Widget _page1;
+
+  late Widget _page2;
+
+  late int _currentIndex;
+
+  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
+    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
+      ref.read(selectedNavPageNameProvider.state).state = pageName;
+    }
+  }
+
+  void setProjects() {
+    setState(() {
+      visWork = '';
+      visProj = 'true';
+      projSel = 'projects';
+      selected = 'projects';
+    });
+  }
+
+  void setWorkers() {
+    setState(() {
+      visProj = '';
+      visWork = 'true';
+      projSel = 'workers';
+      selected = 'workers';
+    });
+  }
+
+  SvgPicture getProjSvg(String selected) {
+    if (selected == 'projects') {
+      return SvgPicture.asset(
+        'assets/images/office bag (1).svg',
+        height: 24,
+        width: 24,
+      );
+    } else {
+      return SvgPicture.asset(
+        'assets/images/office bag.svg',
+        height: 24,
+        width: 24,
+      );
+    }
+  }
+
   Color textColor(String select) {
     if (select == selected) {
       return const Color.fromRGBO(255, 174, 0, 1);
@@ -215,15 +334,15 @@ class _BottomNavState extends ConsumerState<BottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    if (ref.watch(selectedNavPageNameProvider.state).state == 'home') {
-      setHome();
+    if (ref.watch(selectedNavPageNameProvider.state).state == 'projects') {
+      setProjects();
     } else if (ref.watch(selectedNavPageNameProvider.state).state ==
         'workers') {
-      setProjects();
+      setWorkers();
     } else {
       setState(() {
         visProj = '';
-        visHome = '';
+        visWork = '';
         projSel = '';
         selected = '';
       });
@@ -274,8 +393,8 @@ class _BottomNavState extends ConsumerState<BottomNav> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    setHome();
-                    _selectPage(context, ref, 'home');
+                    setProjects();
+                    _selectPage(context, ref, 'projects');
                   },
                   child: Container(
                     margin: const EdgeInsets.only(right: 100),
@@ -286,19 +405,19 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                       children: [
                         Container(
                           alignment: Alignment.center,
-                          decoration: getVis(visHome),
+                          decoration: getVis(visProj),
                           child: Stack(
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  setHome();
-                                  _selectPage(context, ref, 'home');
+                                  setProjects();
+                                  _selectPage(context, ref, 'projects');
                                 },
                                 child: Container(
                                     width: 33,
                                     height: 33,
                                     alignment: Alignment.center,
-                                    child: getHomeSvg(selected)),
+                                    child: getProjSvg(selected)),
                               ),
                             ],
                           ),
@@ -307,9 +426,9 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                           height: 7,
                         ),
                         Text(
-                          'Home',
-                          style:
-                              TextStyle(fontSize: 10, color: textColor('home')),
+                          'Projects',
+                          style: TextStyle(
+                              fontSize: 10, color: textColor('projects')),
                         )
                       ],
                     ),
@@ -317,7 +436,7 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    setProjects();
+                    setWorkers();
                     _selectPage(context, ref, 'workers');
                   },
                   child: Container(
@@ -329,19 +448,19 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            setProjects();
+                            setWorkers();
                             _selectPage(context, ref, 'workers');
                           },
                           child: Container(
                             alignment: Alignment.center,
-                            decoration: getVis(visProj),
+                            decoration: getVis(visWork),
                             child: Stack(
                               children: [
                                 Container(
                                     width: 33,
                                     height: 33,
                                     alignment: Alignment.center,
-                                    child: getProjSvg(projSel)),
+                                    child: getWorkSvg(projSel)),
                               ],
                             ),
                           ),
@@ -351,8 +470,8 @@ class _BottomNavState extends ConsumerState<BottomNav> {
                         ),
                         Text(
                           'Workers',
-                          style:
-                              TextStyle(fontSize: 10, color: textColor('proj')),
+                          style: TextStyle(
+                              fontSize: 10, color: textColor('workers')),
                         )
                       ],
                     ),
@@ -363,6 +482,24 @@ class _BottomNavState extends ConsumerState<BottomNav> {
       ],
     );
   }
+
+  // Widget getPic() {
+  //   if (imgUrl == '') {
+  //     return SvgPicture.asset(
+  //       'assets/images/image 3.svg',
+  //       height: 100,
+  //       width: 100,
+  //       fit: BoxFit.cover,
+  //     );
+  //   } else {
+  //     return Image.network(
+  //       imgUrl,
+  //       height: 100,
+  //       width: 100,
+  //       fit: BoxFit.cover,
+  //     );
+  //   }
+  // }
 }
 
 class Content extends ConsumerWidget {

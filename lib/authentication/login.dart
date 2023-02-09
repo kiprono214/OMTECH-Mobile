@@ -1,4 +1,5 @@
 import 'package:OMTECH/screens/company_screens/company_home.dart';
+import 'package:OMTECH/screens/worker_screens/worker_home.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -367,7 +368,7 @@ class _LoginState extends ConsumerState<Login> {
 
   void toWorkerDash() async {
     Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+        .pushReplacement(MaterialPageRoute(builder: (context) => WorkerHome()));
   }
 
   void toAuthorDash() async {

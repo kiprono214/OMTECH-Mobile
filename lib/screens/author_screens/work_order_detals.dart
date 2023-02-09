@@ -1,15 +1,20 @@
 import 'dart:ffi';
+import 'dart:io';
 
+import 'package:OMTECH/authentication/login.dart';
 import 'package:OMTECH/screens/author_screens/author_home.dart';
 import 'package:OMTECH/screens/author_screens/preventive.dart';
 import 'package:OMTECH/screens/author_screens/reactive.dart';
+import 'package:OMTECH/tools/drop_buttons.dart';
 import 'package:chewie/chewie.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
 class BackPress extends ConsumerWidget {
@@ -53,6 +58,7 @@ class WorkOrderDetails extends StatefulWidget {
       required this.asset,
       required this.engineer,
       required this.id,
+      required this.status,
       required this.assetId,
       required this.assetDesignRef,
       required this.imgUrl});
@@ -61,6 +67,7 @@ class WorkOrderDetails extends StatefulWidget {
 
   String name;
   String category;
+  String status;
   String date;
   String address;
   String project;
@@ -94,6 +101,8 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     getImage(imageId);
     getMedia();
     getVideos();
+    getImg();
+    getComments();
   }
 
   Color imagesTab = Color.fromRGBO(0, 122, 255, 1);
@@ -152,6 +161,268 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   Color leftClick = Colors.black54;
   Color rightClick = Colors.orange;
+
+  Future<void> completeWork() async {
+    String dateNow = DateFormat("dd/MM/yyyy").format(DateTime.now());
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .update({'last_maintained': dateNow, 'status': 'Submitted'}).then(
+            (value) {
+      setState(() {
+        // widget.status = 'Complete';
+      });
+    });
+  }
+
+  List<Map<dynamic, dynamic>> filesDynamo = [];
+
+  String upload = 'not yet';
+
+  String filename = '';
+
+  dynamic fileBytes;
+
+  int att = 0;
+
+  List<String> attachedMedia = [];
+
+  List<DocumentSnapshot> comments = [];
+
+  Future<void> _pickFile() async {
+    // opens storage to pick files and the picked file or files
+    // are assigned into result and if no file is chosen result is null.
+    // you can also toggle "allowMultiple" true or false depending on your need
+    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
+
+    PlatformFile plat = result!.files.first;
+
+    // if no file is picked
+    if (result == null) return;
+
+    var fileMap = <String, PlatformFile>{result.files.first.name: plat};
+
+    final fileName = result.files.first.name;
+
+    setState(() {
+      fileBytes = result.files.first.path;
+      filename = result.files.first.name;
+      filesDynamo.add({filename: fileBytes});
+    });
+
+    List docs = [];
+
+    String useName =
+        'OMT-Work_Order_Media_File_' + (attachedMedia.length + 1).toString();
+
+    String id = widget.id;
+
+    String commentIdAtt = comments.length.toString();
+
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(comments.length.toString())
+        .collection('attached')
+        .doc(attachedMedia.length.toString())
+        .set({'name': useName, 'type': 'image'});
+
+    FirebaseFirestore.instance.collection('attachments').get().then((value) {
+      for (var doc in value.docs) {
+        var name = doc.get('name');
+        docs.add(name);
+        setState(() {
+          att = docs.length;
+        });
+        print(docs.length.toString());
+      }
+    });
+
+    if (documentButton == null) {
+      documentButton = 'User Directory';
+    }
+
+    FirebaseFirestore.instance
+        .collection('attachments')
+        .doc(attachedFiles.toString())
+        .set({
+      'name': filename,
+      'type': documentButton,
+      'work_order': widget.id
+    });
+  }
+
+  Future uploadFile(BuildContext context) async {
+    String id = widget.id;
+    for (var file in filesDynamo) {
+      String tempName = file.entries.first.key;
+      dynamic tempBytes = file.entries.first.value;
+      await FirebaseStorage.instance
+          .ref('n_w_o/$id/attachments/$tempName')
+          .putFile(
+            File(tempBytes),
+          );
+    }
+    Navigator.pop(context);
+  }
+
+  int attachmentDocId = 0;
+
+  Future<void> getDoc() {
+    //  final DocumentReference user =
+    List attachmentsList = [];
+
+    return FirebaseFirestore.instance
+        .collection("attachments")
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        attachmentsList.add(doc.id);
+        var temp = attachmentsList.length;
+        if (attachmentsList.contains(temp.toString())) {
+          setState(() {
+            attachmentDocId = attachmentsList.length + 1;
+          });
+        } else {
+          setState(() {
+            attachmentDocId = attachmentsList.length;
+          });
+        }
+      }
+    });
+  }
+
+  List<DocumentSnapshot> attachedFiles = [];
+
+  Future<void> _showDocDialog() async {
+    getDoc();
+    return showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.all(0),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: Container(
+              height: 400,
+              width: 600,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                  color: const Color.fromRGBO(19, 18, 29, 1),
+                  borderRadius: BorderRadius.circular(20)),
+              child: Column(children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    height: 20,
+                    width: double.infinity,
+                    alignment: Alignment.centerRight,
+                    child: const Icon(Icons.cancel,
+                        size: 20, color: Colors.orange),
+                  ),
+                ),
+                Container(
+                  width: 600,
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Upload Document',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(height: 50, width: 240, child: DocumentType()),
+                Container(
+                    height: 120,
+                    width: 300,
+                    alignment: Alignment.topCenter,
+                    child: GetAtts(
+                      id: widget.id,
+                    )),
+                Container(
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    child: GestureDetector(
+                      onTap: () {
+                        _pickFile();
+                      },
+                      child: const Text(
+                        'upload attachment',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    )),
+                Align(
+                  alignment: Alignment.center,
+                  child: GestureDetector(
+                    onTap: () {
+                      uploadFile(context);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 20),
+                      alignment: Alignment.center,
+                      height: 50,
+                      width: 200,
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(200, 169, 86, 1),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: const Text('Submit',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                )
+              ]),
+            ),
+          );
+        });
+  }
+
+  TextEditingController comment = TextEditingController(text: '');
+
+  Future<void> submitWorkComment() async {
+    String dateNow = DateFormat("dd/MM/yyyy hh:mm").format(DateTime.now());
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(comments.length.toString())
+        .set({
+      'user_task': 'submit',
+      'comment': comment.text,
+      'user': username,
+      'user_type': 'author',
+      'date': dateNow,
+      'caption': dateNow
+    });
+  }
+
+  Future<void> updateDocComment() async {
+    String dateNow = DateFormat("dd/MM/yyyy hh:mm").format(DateTime.now());
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(comments.length.toString())
+        .set({
+      'user_task': 'upload_doc',
+      'comment': comment.text,
+      'user': username,
+      'user_type': 'author',
+      'date': dateNow,
+      'caption': dateNow
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +496,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                           ),
                           Container(
                               margin: const EdgeInsets.only(
-                                  left: 20, right: 20, top: 20),
+                                  left: 0, right: 0, top: 20),
                               width: double.infinity,
                               child: Row(children: [
                                 Container(
@@ -241,87 +512,183 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                   ),
                                 ),
                                 const SizedBox(
-                                  width: 10,
+                                  width: 7,
                                 ),
-                                Column(children: [
-                                  Container(
-                                    height: 70,
-                                    width: 170,
-                                    alignment: Alignment.centerLeft,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: 170,
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            widget.name,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 20,
+                                (widget.status == 'Completed')
+                                    ? Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  _showDocDialog();
+                                                },
+                                                child: Container(
+                                                  height: 30,
+                                                  width: 100,
+                                                  alignment: Alignment.center,
+                                                  child: Text(
+                                                    'Upload Documents',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                      color: Color.fromRGBO(
+                                                          255, 174, 0, 1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8)),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width: 12,
+                                              ),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  completeWork();
+                                                  submitWorkComment();
+                                                  getComments();
+                                                  setState(() {});
+                                                },
+                                                child: Container(
+                                                  height: 30,
+                                                  width: 100,
+                                                  alignment: Alignment.center,
+                                                  child: Text(
+                                                    'Submit',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                      color: Color.fromRGBO(
+                                                          0, 122, 255, 1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8)),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Container(
+                                            width: 212,
+                                            alignment: Alignment.centerLeft,
+                                            child: GestureDetector(
+                                              onTap: () {},
+                                              child: Container(
+                                                height: 30,
+                                                width: 100,
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  'Update Schedule',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
+                                                decoration: BoxDecoration(
+                                                    color: Color.fromRGBO(
+                                                        255, 174, 0, 1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                              ),
                                             ),
                                           ),
+                                        ],
+                                      )
+                                    : Column(children: [
+                                        Container(
+                                          height: 70,
+                                          width: 170,
+                                          alignment: Alignment.centerLeft,
+                                          child: Column(
+                                            children: [
+                                              Container(
+                                                width: 170,
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  widget.name,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w800,
+                                                    fontSize: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 10),
+                                              Row(
+                                                children: [
+                                                  SvgPicture.asset(
+                                                      'assets/images/Icon Stopwatch.svg')
+                                                ],
+                                              )
+                                            ],
+                                          ),
                                         ),
-                                        SizedBox(height: 10),
-                                        Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                                'assets/images/Icon Stopwatch.svg')
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ])
+                                      ])
                               ]))
                         ])),
                     SizedBox(
                       height: 12,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              visible = true;
-                            });
-                          },
-                          child: Container(
-                            height: 30,
-                            width: 100,
-                            alignment: Alignment.center,
-                            child: Text(
-                              'View Media',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            decoration: BoxDecoration(
-                                color: Color.fromRGBO(255, 174, 0, 1),
-                                borderRadius: BorderRadius.circular(8)),
+                    (widget.status == 'Completed')
+                        ? Container()
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    visible = true;
+                                  });
+                                },
+                                child: Container(
+                                  height: 30,
+                                  width: 100,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'View Media',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                  decoration: BoxDecoration(
+                                      color: Color.fromRGBO(255, 174, 0, 1),
+                                      borderRadius: BorderRadius.circular(8)),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Container(
+                                height: 30,
+                                width: 100,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Navigate',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                decoration: BoxDecoration(
+                                    color: Color.fromRGBO(0, 122, 255, 1),
+                                    borderRadius: BorderRadius.circular(8)),
+                              )
+                            ],
                           ),
-                        ),
-                        SizedBox(
-                          width: 12,
-                        ),
-                        Container(
-                          height: 30,
-                          width: 100,
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Navigate',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          decoration: BoxDecoration(
-                              color: Color.fromRGBO(0, 122, 255, 1),
-                              borderRadius: BorderRadius.circular(8)),
-                        )
-                      ],
-                    ),
                     SizedBox(
                       height: 12,
                     ),
@@ -562,7 +929,18 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                               fontWeight: FontWeight.w600,
                               fontStyle: FontStyle.italic)),
                     ),
-                    CommentBox(id: widget.id)
+                    Column(
+                      children: [
+                        for (var doc in comments)
+                          CommentBox(
+                            id: widget.id,
+                            commentId: doc.id,
+                          ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 30,
+                    )
                   ])))),
           Visibility(
               visible: visible,
@@ -1284,20 +1662,11 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
       );
     }
   }
-}
 
-class CommentBox extends StatefulWidget {
-  CommentBox({Key? key, required this.id}) : super(key: key);
+  String commentId = '0';
 
-  String id;
-
-  @override
-  State<CommentBox> createState() => _CommentBoxState();
-}
-
-class _CommentBoxState extends State<CommentBox> {
-  List<DocumentSnapshot> comments = [];
-  void getComment() async {
+  void getComments() async {
+    comments.clear();
     await FirebaseFirestore.instance
         .collection('new_work_orders')
         .doc(widget.id)
@@ -1305,122 +1674,309 @@ class _CommentBoxState extends State<CommentBox> {
         .get()
         .then((value) {
       for (var doc in value.docs) {
-        setState(() {
-          comments.add(doc);
-        });
+        comments.add(doc);
       }
     });
   }
+}
 
+class CommentBox extends StatefulWidget {
+  CommentBox({Key? key, required this.id, required this.commentId})
+      : super(key: key);
+
+  String id;
+  String commentId;
+
+  @override
+  State<CommentBox> createState() => _CommentBoxState();
+}
+
+class _CommentBoxState extends State<CommentBox> {
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getComment();
+  }
+
+  DocumentSnapshot? comment;
+
+  void getComment() async {
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(widget.commentId)
+        .get()
+        .then((value) {
+      setState(() {
+        comment = value;
+      });
+    });
   }
 
   String getCaption(String user_task) {
     if (user_task == 'creator') {
       return 'Created work order';
+    } else if (user_task == 'starter') {
+      return 'Started work order';
+    } else if (user_task == 'pause') {
+      return 'Paused work order';
+    } else if (user_task == 'complete') {
+      return 'Completed work order';
+    } else if (user_task == 'submit') {
+      return 'Submitted order';
+    } else if (user_task == 'approve') {
+      return 'Approved work order';
     } else {
       return '';
     }
   }
 
+  List<DocumentSnapshot> attachedFiles = [];
+
+  void getAttachments() async {
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(widget.commentId)
+        .collection('attached')
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        attachedFiles.add(doc);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var comment in comments)
-          Container(
-            margin: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                    ),
-                    Container(
-                      height: 18,
-                      width: 55,
-                      alignment: Alignment.center,
-                      child: Text(
-                        comment.get('user_type'),
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(77, 92, 125, 1),
-                          borderRadius: BorderRadius.circular(9)),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      comment.get('user'),
-                      style:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                    ),
-                  ],
+    getComment();
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 30,
+              ),
+              Container(
+                height: 18,
+                width: 55,
+                alignment: Alignment.center,
+                child: Text(
+                  comment!.get('user_type'),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400),
                 ),
-                SizedBox(
-                  height: 10,
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(77, 92, 125, 1),
+                    borderRadius: BorderRadius.circular(9)),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                comment!.get('user'),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 6,
+          ),
+          Row(
+            children: [
+              SizedBox(
+                width: 30,
+              ),
+              Container(
+                width: 180,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  getCaption(comment!.get('user_task')),
+                  style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400),
                 ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                    ),
-                    Container(
-                      width: 180,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        getCaption(comment.get('user_task')),
-                        style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400),
-                      ),
-                    ),
-                    Text(
-                      comment.get('caption'),
+              ),
+              Text(
+                comment!.get('caption'),
+                style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Color.fromRGBO(74, 86, 110, 1),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w400),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            children: [
+              SizedBox(
+                width: 30,
+              ),
+              Column(
+                children: [
+                  Container(
+                    width: 250,
+                    margin: const EdgeInsets.only(right: 20),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      comment!.get('comment'),
                       style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Color.fromRGBO(74, 86, 110, 1),
-                          fontSize: 8,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 12,
                           fontWeight: FontWeight.w400),
                     ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                    ),
+                  ),
+                  SizedBox(
+                    height: 6,
+                  ),
+                  for (var doc in attachedFiles)
                     Container(
-                      width: 270,
+                      width: 250,
+                      height: 20,
                       margin: const EdgeInsets.only(right: 20),
-                      alignment: Alignment.center,
+                      alignment: Alignment.centerLeft,
                       child: Text(
-                        comment.get('comment'),
+                        doc.get('name'),
                         style: TextStyle(
                             fontStyle: FontStyle.normal,
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
                             fontSize: 12,
                             fontWeight: FontWeight.w400),
                       ),
-                    )
-                  ],
-                )
-              ],
-            ),
+                    ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                ],
+              )
+            ],
           )
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class GetAtts extends StatefulWidget {
+  GetAtts({Key? key, required this.id}) : super(key: key);
+  String id;
+  @override
+  State<GetAtts> createState() => _GetAttsState(assetDocId: id);
+}
+
+class _GetAttsState extends State<GetAtts> {
+  _GetAttsState({required this.assetDocId});
+  String assetDocId;
+
+  Future<void> deleteDoc(String id, String filename) async {
+    await FirebaseFirestore.instance.collection('attachments').doc(id).delete();
+    await FirebaseStorage.instance.ref('attachments/$filename').delete();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Stream<QuerySnapshot> uploads = FirebaseFirestore.instance
+        .collection('attachments')
+        .where('asset', isEqualTo: assetDocId.toString())
+        .snapshots();
+    return Container(
+      padding: const EdgeInsets.only(left: 15, right: 15),
+      child: SingleChildScrollView(
+        child: SizedBox(
+          height: 300,
+          width: double.infinity,
+          child: StreamBuilder(
+              stream: uploads,
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return const Text('Something went wrong');
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text("Loading...");
+                }
+
+                return ListView(
+                    children:
+                        snapshot.data!.docs.map((DocumentSnapshot document) {
+                  Map<String, dynamic> data =
+                      document.data()! as Map<String, dynamic>;
+
+                  return Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 240,
+                          height: 20,
+                          alignment: Alignment.centerLeft,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Text(data['name'] + ' -',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.normal)),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 160,
+                              alignment: Alignment.centerLeft,
+                              child: Text(data['type'],
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.normal)),
+                            ),
+                            Container(
+                              width: 40,
+                              height: 20,
+                              alignment: Alignment.center,
+                              child: GestureDetector(
+                                  onTap: () {
+                                    String fileNameDel = data['name'];
+                                    FirebaseFirestore.instance
+                                        .collection('attachments')
+                                        .doc(document.id)
+                                        .delete();
+                                    FirebaseStorage.instance
+                                        .ref()
+                                        .child('attachments/$fileNameDel')
+                                        .delete();
+                                  },
+                                  child: const SizedBox(
+                                    child: Icon(
+                                      Icons.cancel,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                    height: 20,
+                                    width: 20,
+                                  )),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList());
+              }),
+        ),
+      ),
     );
   }
 }

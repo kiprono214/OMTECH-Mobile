@@ -1,3 +1,4 @@
+import 'package:OMTECH/screens/author_screens/work_order_detals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -212,6 +213,7 @@ class _PreventiveMState extends State<PreventiveM> {
                                   document.data()! as Map<String, dynamic>;
 
                               return WorkOrderClick(
+                                status: data['status'],
                                 priority: data['priority'],
                                 name: data['name'],
                                 category: data['category'],
@@ -293,12 +295,14 @@ class WorkOrderClick extends ConsumerStatefulWidget {
       required this.asset,
       required this.engineer,
       required this.id,
+      required this.status,
       required this.priority,
       required this.assetId});
 
   String priority;
 
   String name;
+  String status;
   String category;
   String date;
   String address;
@@ -337,26 +341,43 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
   }
 
   String imgUrl = '';
+  String assetDesignRef = '';
 
   Future<void> getImg() async {
+    String name = '';
+    String design = '';
     await FirebaseFirestore.instance
-        .collection('images')
-        .where('asset', isEqualTo: widget.assetId)
+        .collection('assets')
+        .where('unique_id', isEqualTo: widget.assetId)
         .get()
         .then((value) {
       for (var doc in value.docs) {
         setState(() {
-          imgUrl = doc.get('name');
-          print(widget.assetId);
+          name = doc.id;
+          design = doc.get('design');
+          print(name);
+        });
+      }
+    });
+    await FirebaseFirestore.instance
+        .collection('images')
+        .where('asset', isEqualTo: name)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        setState(() {
+          name = doc.get('name');
+          print(name);
         });
       }
     });
     final ref =
-        await FirebaseStorage.instance.ref().child('asset_images/$imgUrl');
+        await FirebaseStorage.instance.ref().child('asset_images/$name');
     // no need of the file extension, the name will do fine.
     String temp = await ref.getDownloadURL();
     setState(() {
       imgUrl = temp;
+      assetDesignRef = design;
       print('????????????????????????????????????' + imgUrl);
     });
   }
@@ -365,7 +386,31 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return GestureDetector(
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => WorkOrderDetails(
+                  status: widget.status,
+                  name: widget.name,
+                  category: widget.category,
+                  date: widget.date,
+                  address: widget.address,
+                  project: widget.project,
+                  author: widget.author,
+                  client: widget.client,
+                  date_created: widget.date_created,
+                  company: widget.company,
+                  room: widget.room,
+                  creator: widget.creator,
+                  frequency: widget.frequency,
+                  nature: widget.nature,
+                  lastMaintained: widget.lastMaintained,
+                  asset: widget.asset,
+                  engineer: widget.engineer,
+                  id: widget.id,
+                  assetId: widget.assetId,
+                  assetDesignRef: assetDesignRef,
+                  imgUrl: imgUrl)));
+        },
         child: Stack(
           children: [
             Container(

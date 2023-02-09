@@ -972,12 +972,8 @@ class _ProjectsState extends State<Projects> {
               ),
         child: Container(
             alignment: Alignment.centerLeft,
-            height: 50,
-            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black87, width: 0.2),
-            ),
+            height: 30,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Text(item.get('title'))));
   }
 
@@ -1047,12 +1043,11 @@ class _ProjectsState extends State<Projects> {
               //     const Icon(Icons.keyboard_arrow_down, color: Colors.black),
               filled: true,
               hoverColor: Colors.white70,
-              fillColor: Colors.white,
+              fillColor: Colors.transparent,
               contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide:
-                    const BorderSide(color: Colors.transparent, width: 0.0),
+                borderSide: const BorderSide(color: Colors.black87, width: 0.2),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -1086,6 +1081,155 @@ class _ProjectsState extends State<Projects> {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(
                               color: Colors.orangeAccent, width: 0.8),
+                        )),
+                    textInputAction: TextInputAction.search),
+                itemBuilder: _customPopupItemBuilderExample),
+          );
+        });
+  }
+}
+
+DocumentSnapshot? workersButton;
+TextEditingController workerName = TextEditingController(text: '');
+
+class Workers extends StatefulWidget {
+  const Workers({Key? key}) : super(key: key);
+
+  @override
+  State<Workers> createState() => _WorkersState();
+}
+
+class _WorkersState extends State<Workers> {
+  Widget _customDropDownExample(BuildContext context, String item) {
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.transparent, width: 0.0)),
+    );
+  }
+
+  Widget _customPopupItemBuilderExample(
+      BuildContext context, DocumentSnapshot item, bool isSelected) {
+    return Container(
+        margin: EdgeInsets.symmetric(horizontal: 8),
+        decoration: !isSelected
+            ? null
+            : BoxDecoration(
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(5),
+                color: Colors.white,
+              ),
+        child: Container(
+            alignment: Alignment.centerLeft,
+            height: 50,
+            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+            child: Text(item.get('name'))));
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  List<DocumentSnapshot> documents = [];
+
+  List<DocumentSnapshot> getList(
+      TextEditingController controller, List<DocumentSnapshot> documentsList) {
+    if (controller.text.length > 0) {
+      documentsList = documentsList.where((element) {
+        return element
+            .get('name')
+            .toString()
+            .toLowerCase()
+            .contains(controller.text.toLowerCase());
+      }).toList();
+    }
+    return documentsList;
+  }
+
+  final Stream<QuerySnapshot> _usersStream =
+      FirebaseFirestore.instance.collection('workers').snapshots();
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController workersSearchController = TextEditingController();
+    workersSearchController.addListener(() {
+      setState(() {});
+    });
+    return StreamBuilder<QuerySnapshot>(
+        stream: _usersStream,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          // Safety check to ensure that snapshot contains data
+          // without this safety check, StreamBuilder dirty state warnings will be thrown
+          if (!snapshot.hasData) {
+            return DecoratedBox(
+                decoration: BoxDecoration(
+                    color: Colors.white, //background color of dropdown button
+                    border: Border.all(
+                        color: Colors.white,
+                        width: 0), //border of dropdown button
+                    borderRadius: BorderRadius.circular(8)));
+          }
+
+          documents = snapshot.data!.docs;
+
+          return DropdownSearch<DocumentSnapshot>(
+            items: getList(workersSearchController, documents),
+            itemAsString: (item) {
+              return item.get('name');
+            },
+            selectedItem: workersButton,
+            onChanged: (value) {
+              workersButton = value;
+              workerName.text = value!.get('name');
+            },
+            dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+              // suffixIcon:
+              //     const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+              filled: true,
+              hoverColor: Colors.white70,
+              fillColor: Colors.white,
+              hintText: 'Select Worker',
+              contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.black87, width: 0.2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    const BorderSide(color: Colors.orangeAccent, width: 0.8),
+              ),
+            )),
+            popupProps: PopupProps.menu(
+                emptyBuilder: _customDropDownExample,
+                menuProps: MenuProps(
+                    backgroundColor: Colors.white,
+                    borderRadius: BorderRadius.circular(12)),
+                showSearchBox: true,
+                searchFieldProps: TextFieldProps(
+                    controller: workersSearchController,
+                    cursorColor: Colors.orange,
+                    cursorWidth: 1,
+                    decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        //prefixIcon: Icon(Icons.vpn_key),
+                        contentPadding:
+                            const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                        hintText: "Search",
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: Colors.black87, width: 0.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: Colors.orangeAccent, width: 0.5),
                         )),
                     textInputAction: TextInputAction.search),
                 itemBuilder: _customPopupItemBuilderExample),
@@ -1187,6 +1331,9 @@ class _RoomsState extends State<Rooms> {
     // TODO: implement initState
     super.initState();
     projectId.addListener(() {
+      setState(() {});
+    });
+    projectName.addListener(() {
       setState(() {});
     });
   }
@@ -1770,12 +1917,8 @@ class _AssetDropState extends State<AssetDrop> {
               ),
         child: Container(
             alignment: Alignment.centerLeft,
-            height: 50,
-            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black87, width: 0.2),
-            ),
+            height: 30,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Text(item.get('name'))));
   }
 
@@ -1870,12 +2013,11 @@ class _AssetDropState extends State<AssetDrop> {
               //     const Icon(Icons.keyboard_arrow_down, color: Colors.black),
               filled: true,
               hoverColor: Colors.white70,
-              fillColor: Colors.white,
+              fillColor: Colors.transparent,
               contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide:
-                    const BorderSide(color: Colors.transparent, width: 0.0),
+                borderSide: const BorderSide(color: Colors.black87, width: 0.2),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -1997,12 +2139,8 @@ class _AuthorAssetDropState extends State<AuthorAssetDrop> {
               ),
         child: Container(
             alignment: Alignment.centerLeft,
-            height: 50,
-            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black87, width: 0.2),
-            ),
+            height: 30,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Text(item.get('name'))));
   }
 

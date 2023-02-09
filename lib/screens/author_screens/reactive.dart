@@ -214,6 +214,7 @@ class _ReactiveMState extends State<ReactiveM> {
 
                               return WorkOrderClick(
                                 priority: data['priority'],
+                                status: data['status'],
                                 name: data['name'],
                                 category: data['category'],
                                 address: data['address'],
@@ -295,6 +296,7 @@ class WorkOrderClick extends ConsumerStatefulWidget {
       required this.engineer,
       required this.id,
       required this.assetId,
+      required this.status,
       required this.priority});
 
   String priority;
@@ -302,6 +304,7 @@ class WorkOrderClick extends ConsumerStatefulWidget {
   String name;
   String category;
   String date;
+  String status;
   String address;
   String project;
   String author;
@@ -402,6 +405,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => WorkOrderDetails(
+                  status: widget.status,
                   name: widget.name,
                   category: widget.category,
                   date: widget.date,

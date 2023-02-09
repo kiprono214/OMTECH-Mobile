@@ -1362,6 +1362,7 @@ class _EditWorkOrderState extends State<EditWorkOrder> {
       'asset_id': widget.assetId,
       'created_by': username,
       'creator_access': 'author',
+      'worker': '',
       'priority': priorityButton!
     }).then((value) {
       addComment();
@@ -1668,12 +1669,16 @@ class _EditWorkOrderState extends State<EditWorkOrder> {
         .then((value) {
       for (var doc in value.docs) {
         ids.add(doc.id);
-        String check = ids.length.toString();
-        if (ids.contains(check)) {
+      }
+      String check = ids.length.toString();
+      if (ids.contains(check)) {
+        setState(() {
           workOrderId = ids.length + 1;
-        } else {
+        });
+      } else {
+        setState(() {
           workOrderId = ids.length;
-        }
+        });
       }
     });
   }

@@ -2115,7 +2115,10 @@ class _EditAssetState extends State<EditAsset> {
       assetTypeButton = '';
     }
     if (roomsButton == null) {}
-    return FirebaseFirestore.instance.collection('assets').doc(assetId).update({
+    return FirebaseFirestore.instance
+        .collection('assets')
+        .doc(widget.assetId)
+        .update({
       // 'date': dateNow,
       'name': name.text,
       'project': titleClick,

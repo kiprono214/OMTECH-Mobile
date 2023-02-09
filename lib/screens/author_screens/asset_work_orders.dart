@@ -233,6 +233,7 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
                                   document.data()! as Map<String, dynamic>;
 
                               return WorkOrderClick(
+                                status: data['status'],
                                 priority: data['priority'],
                                 name: data['name'],
                                 category: data['category'],
@@ -289,6 +290,7 @@ class WorkOrderClick extends ConsumerStatefulWidget {
     required this.asset,
     required this.engineer,
     required this.id,
+    required this.status,
     required this.assetId,
     required this.priority,
   });
@@ -297,6 +299,7 @@ class WorkOrderClick extends ConsumerStatefulWidget {
 
   String name;
   String category;
+  String status;
   String date;
   String address;
   String project;
@@ -395,6 +398,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
           }
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => WorkOrderDetails(
+                  status: widget.status,
                   name: widget.name,
                   category: widget.category,
                   date: widget.date,
