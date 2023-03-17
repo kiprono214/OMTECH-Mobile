@@ -1,5 +1,6 @@
 import 'package:OMTECH/screens/worker_screens/worker_home.dart';
 import 'package:OMTECH/screens/worker_screens/create_asset.dart';
+import 'package:OMTECH/tools/drop_buttons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -16,9 +17,9 @@ class AssetBackPress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
+    return InkWell(
         onTap: () {
-          _selectPage(context, ref, 'projects');
+          Navigator.of(context).pop();
         },
         child: Container(
             width: 60,
@@ -34,12 +35,23 @@ class CreateAssetPress extends ConsumerWidget {
     }
   }
 
+  void getProjId(BuildContext context) async {
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .where('title', isEqualTo: titleClick)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        projectId.text = doc.id;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => CreateAsset()));
+        getProjId(context);
       },
       child: Container(
           margin: const EdgeInsets.only(bottom: 50),
@@ -120,7 +132,6 @@ class _AssetsStreamState extends State<AssetsStream> {
         ));
 
     return Scaffold(
-      floatingActionButton: CreateAssetPress(),
       body: Container(
         alignment: Alignment.topCenter,
         height: double.infinity,

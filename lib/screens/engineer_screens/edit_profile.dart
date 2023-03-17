@@ -10,7 +10,6 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:OMTECH/authentication/login.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 import './engineer_home.dart';
 import './profile.dart';
 
@@ -663,36 +662,36 @@ class _ViewProfileState extends State<ViewProfile> {
 
   File? image;
   Future pickImage() async {
-    try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+    // try {
+    //   final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    //   if (image == null) return;
+    //   final imageTemp = File(image.path);
 
-      setState(() {
-        this.image = imageTemp;
-        imgAsset = image.name;
-      });
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
-    }
-    await FirebaseFirestore.instance
-        .collection('images')
-        .doc(userId.toString())
-        .set({'name': imgAsset, 'asset': userId.toString()});
+    //   setState(() {
+    //     this.image = imageTemp;
+    //     imgAsset = image.name;
+    //   });
+    // } on PlatformException catch (e) {
+    //   print('Failed to pick image: $e');
+    // }
+    // await FirebaseFirestore.instance
+    //     .collection('images')
+    //     .doc(userId.toString())
+    //     .set({'name': imgAsset, 'asset': userId.toString()});
 
-    if (image != null) {
-      //Upload to Firebase
-      var snapshot = await FirebaseStorage.instance
-          .ref()
-          .child('engineers/$userId')
-          .putFile(image!);
-      var downloadUrl = await snapshot.ref.getDownloadURL();
-      setState(() {
-        userProf = downloadUrl;
-      });
-    } else {
-      print('No Image Path Received');
-    }
+    // if (image != null) {
+    //   //Upload to Firebase
+    //   var snapshot = await FirebaseStorage.instance
+    //       .ref()
+    //       .child('engineers/$userId')
+    //       .putFile(image!);
+    //   var downloadUrl = await snapshot.ref.getDownloadURL();
+    //   setState(() {
+    //     userProf = downloadUrl;
+    //   });
+    // } else {
+    //   print('No Image Path Received');
+    // }
   }
 }
 

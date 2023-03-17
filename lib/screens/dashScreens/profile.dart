@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:OMTECH/authentication/login.dart';
 import 'package:OMTECH/screens/dashScreens/client_home.dart';
 import 'package:OMTECH/screens/dashScreens/edit_profile.dart';
-import 'package:image_picker/image_picker.dart';
 
 class Profile extends ConsumerStatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -465,13 +465,21 @@ class _ProfileState extends ConsumerState<Profile> {
   File? image;
   Future pickImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'svg'],
+      );
+
+      PlatformFile plat = result!.files.first;
+
+      // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // if (image == null) return;
+      final imageTemp = File(plat.path!);
 
       setState(() {
         this.image = imageTemp;
-        imgAsset = image.name;
+        imgAsset = plat.name;
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');

@@ -204,6 +204,17 @@ class _WorkersState extends State<Workers> {
     });
   }
 
+  void workerDelete() async {
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .doc(delWork.text)
+        .delete()
+        .then((value) {
+      workers.clear;
+      getEng();
+    });
+  }
+
   // void getFromEngineers() async {
   //   for (var id in docIds) {
   //     await FirebaseFirestore.instance
@@ -260,6 +271,10 @@ class _WorkersState extends State<Workers> {
     // TODO: implement initState
     super.initState();
     getEng();
+    delWork.addListener(() {
+      workerDelete();
+      setState(() {});
+    });
   }
 
   Future<void> _showDialog() async {
@@ -513,22 +528,27 @@ class _WorkersState extends State<Workers> {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(bottom: 120),
-                  child: Column(
-                      children: workers
-                          .map((DocumentSnapshot document) {
-                            Map<String, dynamic> data =
-                                document.data() as Map<String, dynamic>;
-                            return WorkerClick(
-                              id: document.id,
-                              name: data['name'],
-                              email: data['email'],
-                              phone: data['phone'],
-                              address: data['address'],
-                            );
-                          })
-                          .toList()
-                          .cast()),
+                  height: MediaQuery.of(context).size.height,
+                  padding: const EdgeInsets.only(bottom: 70),
+                  margin: const EdgeInsets.only(top: 20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: workers
+                            .map((DocumentSnapshot document) {
+                              Map<String, dynamic> data =
+                                  document.data() as Map<String, dynamic>;
+                              return WorkerClick(
+                                id: document.id,
+                                name: data['name'],
+                                email: data['email'],
+                                phone: data['phone'],
+                                address: data['address'],
+                              );
+                            })
+                            .toList()
+                            .cast()),
+                  ),
                 )
                 // .toList()
                 // .cast(),
@@ -561,6 +581,8 @@ class WorkerClick extends StatefulWidget {
   State<WorkerClick> createState() => _WorkerClickState();
 }
 
+TextEditingController delWork = TextEditingController(text: '');
+
 class _WorkerClickState extends State<WorkerClick> {
   String imgUrl = '';
 
@@ -579,6 +601,20 @@ class _WorkerClickState extends State<WorkerClick> {
     });
   }
 
+  void getStatus() async {
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .doc(widget.id)
+        .get()
+        .then((value) {
+      if (value.get('status') == 'active') {
+        setState(() {
+          this.value = true;
+        });
+      } else {}
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -586,6 +622,7 @@ class _WorkerClickState extends State<WorkerClick> {
     getAssets();
     getProf();
     setState(() {});
+    getStatus();
   }
 
   void getProf() async {
@@ -630,24 +667,6 @@ class _WorkerClickState extends State<WorkerClick> {
             color: const Color.fromRGBO(246, 250, 255, 1)),
         child: Stack(
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                height: 30,
-                width: 84,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    color: Color.fromRGBO(236, 238, 241, 1),
-                    borderRadius: BorderRadius.circular(5)),
-                child: Text(
-                  'Ongoing : ' + ongoing,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            ),
             Row(
               children: [
                 Container(
@@ -715,11 +734,16 @@ class _WorkerClickState extends State<WorkerClick> {
                                   ),
                                   const SizedBox(width: 3),
                                   Container(
+                                    width: 70,
+                                    height: 30,
                                     alignment: Alignment.centerLeft,
-                                    child: Text(widget.address,
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 12)),
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Text(widget.address,
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 12)),
+                                    ),
                                   )
                                 ],
                               ),
@@ -727,6 +751,24 @@ class _WorkerClickState extends State<WorkerClick> {
                           ]),
                     )),
               ],
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                height: 30,
+                width: 84,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(236, 238, 241, 1),
+                    borderRadius: BorderRadius.circular(5)),
+                child: Text(
+                  'Ongoing : ' + ongoing,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
             ),
             Align(
               alignment: Alignment.bottomRight,
@@ -750,11 +792,14 @@ class _WorkerClickState extends State<WorkerClick> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              setState(() {
-                                value = false;
-                                // switchLeft = Colors.white;
-                                // switchRight = Colors.transparent;
-                              });
+                              if (value == true) {
+                                setState(() {
+                                  value = false;
+                                  changeStatusInactive();
+                                  // switchLeft = Colors.white;
+                                  // switchRight = Colors.transparent;
+                                });
+                              }
                             },
                             child: Container(
                               height: 20,
@@ -771,11 +816,14 @@ class _WorkerClickState extends State<WorkerClick> {
                               alignment: Alignment.centerRight,
                               child: GestureDetector(
                                 onTap: () {
-                                  setState(() {
-                                    value = true;
-                                    // switchLeft = Colors.transparent;
-                                    // switchRight = Colors.white;
-                                  });
+                                  if (value == false) {
+                                    setState(() {
+                                      value = true;
+                                      changeStatusActive();
+                                      // switchLeft = Colors.transparent;
+                                      // switchRight = Colors.white;
+                                    });
+                                  }
                                 },
                                 child: Container(
                                   height: 20,
@@ -795,10 +843,15 @@ class _WorkerClickState extends State<WorkerClick> {
                     SizedBox(
                       width: 10,
                     ),
-                    SvgPicture.asset(
-                      'assets/images/Group 4911 (1).svg',
-                      height: 24,
-                      width: 24,
+                    InkWell(
+                      onTap: () {
+                        delWork.text = widget.id;
+                      },
+                      child: SvgPicture.asset(
+                        'assets/images/Group 4911 (1).svg',
+                        height: 24,
+                        width: 24,
+                      ),
                     ),
                   ],
                 ),
@@ -808,6 +861,20 @@ class _WorkerClickState extends State<WorkerClick> {
         ),
       ),
     );
+  }
+
+  void changeStatusActive() async {
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .doc(widget.id)
+        .update({'status': 'active'});
+  }
+
+  void changeStatusInactive() async {
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .doc(widget.id)
+        .update({'status': 'inactive'});
   }
 
   Widget getPic() {

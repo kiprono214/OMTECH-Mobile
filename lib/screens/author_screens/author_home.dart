@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:OMTECH/screens/author_screens/profile copy.dart';
 import 'package:OMTECH/screens/author_screens/home.dart';
+import '../../tools/qr_code_scanner.dart';
 import 'assets.dart';
 import 'create_asset.dart';
 
@@ -44,6 +45,7 @@ final pages = <String, WidgetBuilder>{
   'profile': (context) => const Profile(),
   'assets': (context) => AssetsStream(title: titleClick),
   'create asset': (context) => CreateAsset(),
+  'scan': (context) => ScanScreen(),
   'asset details': (context) => AssetDetails(
       assetId: _assetId,
       date: _date,
@@ -135,29 +137,34 @@ class _AuthorHomeState extends ConsumerState<AuthorHome> {
               ),
               Align(
                   alignment: Alignment.bottomCenter,
-                  child: Container(
-                    height: 76,
-                    width: 76,
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.only(top: 600, bottom: 24),
-                    decoration: BoxDecoration(
-                        color: const Color.fromRGBO(46, 55, 73, 1),
-                        borderRadius: BorderRadius.circular(38)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/scan.svg',
-                          height: 26.67,
-                          width: 26.67,
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text('Scan',
-                            style: TextStyle(
-                                fontSize: 10, color: textColor('scan')))
-                      ],
+                  child: GestureDetector(
+                    onTap: () {
+                      _selectPage(context, ref, 'scan');
+                    },
+                    child: Container(
+                      height: 76,
+                      width: 76,
+                      alignment: Alignment.center,
+                      margin: const EdgeInsets.only(top: 600, bottom: 24),
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(46, 55, 73, 1),
+                          borderRadius: BorderRadius.circular(38)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/scan.svg',
+                            height: 26.67,
+                            width: 26.67,
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text('Scan',
+                              style: TextStyle(
+                                  fontSize: 10, color: textColor('scan')))
+                        ],
+                      ),
                     ),
                   ))
             ],
@@ -597,7 +604,25 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
           _engineer = engineer;
           _expectancy = expectancy;
           _details = details;
-          _selectPage(context, ref, 'asset details');
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => AssetDetails(
+                  assetId: assetId,
+                  date: date,
+                  id: id,
+                  imgUrl: imgUrl,
+                  name: name,
+                  project: project,
+                  design: design,
+                  serial: serial,
+                  location: location,
+                  model: model,
+                  status: status,
+                  system: system,
+                  subsystem: subsystem,
+                  type: type,
+                  engineer: engineer,
+                  expectancy: expectancy,
+                  details: details)));
         },
         child: Container(
           alignment: Alignment.centerLeft,

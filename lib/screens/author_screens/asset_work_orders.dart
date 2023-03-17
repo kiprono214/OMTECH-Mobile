@@ -109,7 +109,7 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
                   child: Column(
                     children: [
                       const SizedBox(
-                        height: 40,
+                        height: 20,
                       ),
                       Stack(
                         children: [

@@ -252,6 +252,7 @@ class _PreventiveMState extends State<PreventiveM> {
 
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('new_work_orders')
+      .where('client', isEqualTo: username)
       .where('nature', isEqualTo: 'Preventative')
       .snapshots();
 

@@ -138,6 +138,7 @@ class _MyWidgetState extends State<MyWidget> {
             ),
             Container(
               height: MediaQuery.of(context).size.height,
+              color: const Color.fromRGBO(46, 59, 73, 0.3),
               child: SingleChildScrollView(
                 child:
                     Column(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -798,16 +799,18 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   void getProf() async {
-    userProf = await FirebaseStorage.instance
+    String downloadUrl = await FirebaseStorage.instance
         .ref()
         .child('authors/$userId')
         .getDownloadURL();
     print('"""""""""""""""""$userProf');
-    setState(() {});
+    setState(() {
+      userProf = downloadUrl;
+    });
   }
 
   Widget getSmallHolder() {
-    if (userProf == null) {
+    if (userProf == '') {
       return GestureDetector(
         onTap: (() {}),
         child: ClipRRect(
@@ -826,7 +829,7 @@ class _MyWidgetState extends State<MyWidget> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(25),
           child: Image.network(
-            userProf!,
+            userProf,
             height: 50,
             width: 50,
             fit: BoxFit.cover,

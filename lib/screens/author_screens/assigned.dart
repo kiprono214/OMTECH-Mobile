@@ -1,4 +1,5 @@
 import 'package:OMTECH/screens/author_screens/engineer_details.dart';
+import 'package:OMTECH/screens/author_screens/assets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -395,9 +396,6 @@ class _AssignedState extends State<Assigned> {
                   margin: const EdgeInsets.only(left: 20, right: 20, top: 20),
                   child: Column(
                     children: [
-                      const SizedBox(
-                        height: 40,
-                      ),
                       Stack(
                         children: [
                           BackPress(),
@@ -605,8 +603,9 @@ class _AssetClickState extends ConsumerState<AssetClick> {
     // TODO: implement build
     return GestureDetector(
         onTap: () {
-          _selectPage(context, ref, 'assets');
           titleClick = title;
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => AssetsStream(title: title)));
         },
         child: Container(
             alignment: Alignment.centerLeft,
@@ -998,9 +997,6 @@ class _EngineersState extends State<Engineers> {
                   margin: const EdgeInsets.only(left: 20, right: 20, top: 20),
                   child: Column(
                     children: [
-                      const SizedBox(
-                        height: 40,
-                      ),
                       Stack(
                         children: [
                           EngBackPress(),

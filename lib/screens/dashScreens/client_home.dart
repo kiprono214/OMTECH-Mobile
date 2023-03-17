@@ -1,3 +1,4 @@
+import 'package:OMTECH/tools/qr_code_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -13,7 +14,8 @@ Widget _currentPage = MyWidget();
 final pages = <String, WidgetBuilder>{
   'home': (context) => const MyWidget(),
   'projects': (context) => const Assigned(),
-  'profile': (context) => const Profile()
+  'profile': (context) => const Profile(),
+  'scan': (context) => ScanScreen()
 };
 
 final selectedNavPageNameProvider = StateProvider<String>((ref) {
@@ -85,29 +87,34 @@ class _ClientDashState extends ConsumerState<ClientDash> {
               ),
               Align(
                   alignment: FractionalOffset.bottomCenter,
-                  child: Container(
-                    height: 76,
-                    width: 76,
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.only(top: 400, bottom: 24),
-                    decoration: BoxDecoration(
-                        color: const Color.fromRGBO(46, 55, 73, 1),
-                        borderRadius: BorderRadius.circular(38)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/scan.svg',
-                          height: 26.67,
-                          width: 26.67,
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text('Scan',
-                            style: TextStyle(
-                                fontSize: 10, color: textColor('scan')))
-                      ],
+                  child: InkWell(
+                    onTap: () {
+                      _selectPage(context, ref, 'scan');
+                    },
+                    child: Container(
+                      height: 76,
+                      width: 76,
+                      alignment: Alignment.center,
+                      margin: const EdgeInsets.only(top: 600, bottom: 24),
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(46, 55, 73, 1),
+                          borderRadius: BorderRadius.circular(38)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/scan.svg',
+                            height: 26.67,
+                            width: 26.67,
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text('Scan',
+                              style: TextStyle(
+                                  fontSize: 10, color: textColor('scan')))
+                        ],
+                      ),
                     ),
                   ))
             ],

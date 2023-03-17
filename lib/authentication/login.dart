@@ -17,7 +17,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
 late String username, userEmail, userPassword, userId;
-String? userProf;
+String userProf = '';
 
 class Login extends ConsumerStatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -42,7 +42,26 @@ class _LoginState extends ConsumerState<Login> {
       Timer(Duration(milliseconds: milliseconds), handleTimeout);
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    username = '';
+    userEmail = '';
+    userPassword = '';
+    userId = '';
+    userProf = '';
+    setState(() {
+      logged = 'no';
+    });
+  }
+
+  String logged = 'no';
+
+  @override
   Widget build(BuildContext context) {
+    setState(() {
+      logged = 'no';
+    });
     final emailField = TextFormField(
         autofocus: false,
         controller: emailController,
@@ -124,9 +143,14 @@ class _LoginState extends ConsumerState<Login> {
           padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
           minWidth: MediaQuery.of(context).size.width,
           onPressed: () {
-            userEmail = emailController.text;
-            userPassword = passwordController.text;
-            signIn(emailController.text, passwordController.text);
+            if (logged == 'no') {
+              userEmail = emailController.text;
+              userPassword = passwordController.text;
+              signIn(emailController.text, passwordController.text);
+            }
+            setState(() {
+              logged = 'wait';
+            });
             // logIt(emailController.text, passwordController.text);
           },
           child: const Text(
@@ -309,7 +333,7 @@ class _LoginState extends ConsumerState<Login> {
   String loading = 'true';
 
   Future<void> showMyDialog() async {
-    return showDialog<void>(
+    await showDialog<void>(
       context: context,
       barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
@@ -342,9 +366,9 @@ class _LoginState extends ConsumerState<Login> {
     );
   }
 
-  Future<dynamic> getData(String email, String password) async {
+  void getData(String email, String password) async {
     //  final DocumentReference user =
-    FirebaseFirestore.instance
+    await FirebaseFirestore.instance
         .collection("users")
         .get()
         .then((QuerySnapshot querySnapshot) {
@@ -367,11 +391,11 @@ class _LoginState extends ConsumerState<Login> {
   }
 
   void toWorkerDash() async {
-    Navigator.of(context)
+    await Navigator.of(context)
         .pushReplacement(MaterialPageRoute(builder: (context) => WorkerHome()));
   }
 
-  void toAuthorDash() async {
+  void toAuthorDash() {
     Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => AuthorHome(
               from: 'login',
@@ -379,14 +403,14 @@ class _LoginState extends ConsumerState<Login> {
   }
 
   void toClientDash() async {
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
+    await Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => ClientDash(
               from: 'login',
             )));
   }
 
   void toCompanyDash() async {
-    Navigator.of(context).pushReplacement(
+    await Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => CompanyHome()));
   }
 
@@ -398,8 +422,10 @@ class _LoginState extends ConsumerState<Login> {
       for (var doc in querySnapshot.docs) {
         String tempEmail = doc.get('email');
         if (tempEmail == emailController.text) {
-          username = doc.get('name');
-          userId = doc.id;
+          setState(() {
+            username = doc.get('name');
+            userId = doc.id;
+          });
           String status = doc.get('status');
           if (status == 'active') {
             toCompanyDash();
@@ -416,7 +442,7 @@ class _LoginState extends ConsumerState<Login> {
     });
   }
 
-  Future<void> getClientStatus() async {
+  void getClientStatus() async {
     return FirebaseFirestore.instance
         .collection('clients')
         .get()
@@ -424,8 +450,10 @@ class _LoginState extends ConsumerState<Login> {
       for (var doc in querySnapshot.docs) {
         String tempEmail = doc.get('email');
         if (tempEmail == emailController.text) {
-          username = doc.get('name');
-          userId = doc.id;
+          setState(() {
+            username = doc.get('name');
+            userId = doc.id;
+          });
           String status = doc.get('status');
           if (status == 'active') {
             toClientDash();
@@ -442,19 +470,25 @@ class _LoginState extends ConsumerState<Login> {
     });
   }
 
-  Future<void> getAuthorStatus() async {
-    return FirebaseFirestore.instance
+  void getAuthorStatus() async {
+    await FirebaseFirestore.instance
         .collection('authors')
         .get()
         .then((QuerySnapshot querySnapshot) {
       for (var doc in querySnapshot.docs) {
         String tempEmail = doc.get('email');
         if (tempEmail == emailController.text) {
-          username = doc.get('name');
-          userId = doc.id;
+          setState(() {
+            username = doc.get('name');
+            userId = doc.id;
+          });
           String status = doc.get('status');
           if (status == 'active') {
-            toAuthorDash();
+            // toAuthorDash();
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => AuthorHome(
+                      from: 'login',
+                    )));
           } else {
             setState(() {
               loading = 'false';
@@ -468,7 +502,7 @@ class _LoginState extends ConsumerState<Login> {
     });
   }
 
-  Future<void> getEngineerStatus() async {
+  void getEngineerStatus() async {
     return FirebaseFirestore.instance
         .collection('engineers')
         .get()
@@ -476,8 +510,10 @@ class _LoginState extends ConsumerState<Login> {
       for (var doc in querySnapshot.docs) {
         String tempEmail = doc.get('email');
         if (tempEmail == emailController.text) {
-          username = doc.get('name');
-          userId = doc.id;
+          setState(() {
+            username = doc.get('name');
+            userId = doc.id;
+          });
           String status = doc.get('status');
           if (status == 'active') {
             toEngineerDash();
@@ -494,7 +530,7 @@ class _LoginState extends ConsumerState<Login> {
     });
   }
 
-  Future<void> getWorkerStatus() async {
+  void getWorkerStatus() async {
     return FirebaseFirestore.instance
         .collection('workers')
         .get()
@@ -502,8 +538,10 @@ class _LoginState extends ConsumerState<Login> {
       for (var doc in querySnapshot.docs) {
         String tempEmail = doc.get('email');
         if (tempEmail == emailController.text) {
-          username = doc.get('name');
-          userId = doc.id;
+          setState(() {
+            username = doc.get('name');
+            userId = doc.id;
+          });
           String status = doc.get('status');
           if (status == 'active') {
             toWorkerDash();
@@ -520,7 +558,7 @@ class _LoginState extends ConsumerState<Login> {
     });
   }
 
-  Future<void> _showDialog(String? errorMesssage) async {
+  void _showDialog(String? errorMesssage) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -571,7 +609,9 @@ class _LoginState extends ConsumerState<Login> {
               onPressed: () {
                 // Navigator.of(context).pop();
                 Navigator.pop(context); // pop current page
-                Navigator.pushNamed(context, "Setting"); // push it back in
+                setState(() {
+                  logged = 'no';
+                });
               },
             ),
           ],

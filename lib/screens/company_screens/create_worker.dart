@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:OMTECH/authentication/login.dart';
 import 'package:OMTECH/screens/company_screens/company_home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:random_password_generator/random_password_generator.dart';
 import 'package:intl/intl.dart';
 
@@ -122,13 +122,13 @@ class _CreateWorkerState extends State<CreateWorker> {
     );
   }
 
-  Future<void> _showDialog(String string) async {
+  Future<void> _showDialog(String? message) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(string),
+          title: Text(message!),
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
@@ -139,10 +139,17 @@ class _CreateWorkerState extends State<CreateWorker> {
           ),
           actions: <Widget>[
             TextButton(
-                child: const Text('OK'),
-                onPressed: () {
+              child: const Text('OK'),
+              onPressed: () {
+                // Navigator.of(context).pop();
+                // pop current page
+                if (message == 'Worker Added') {
+                  Navigator.of(context).pop();
+                } else {
                   Navigator.pop(context);
-                }),
+                }
+              },
+            ),
           ],
         );
       },
@@ -229,7 +236,7 @@ class _CreateWorkerState extends State<CreateWorker> {
       'status': 'active'
     }).then((value) {
       print("User Added");
-      _showDialogConsumer('Worker Added');
+      _showDialog('Wroker Added');
     }).catchError((error) {
       _showDialog("Failed to add user: $error");
     });
@@ -520,7 +527,7 @@ class _CreateWorkerState extends State<CreateWorker> {
                 GestureDetector(
                   onTap: () {
                     if (_formKey.currentState!.validate()) {
-                      addUser();
+                      createAuth(email.text);
                     }
                   },
                   child: Container(
@@ -603,31 +610,39 @@ class _CreateWorkerState extends State<CreateWorker> {
   File? image;
   Future pickImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'svg'],
+      );
+
+      PlatformFile plat = result!.files.first;
+
+      // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // if (image == null) return;
+      final imageTemp = File(plat.path!);
 
       setState(() {
         this.image = imageTemp;
-        imgAsset = image.name;
+        imgAsset = plat.name;
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
     }
     await FirebaseFirestore.instance
         .collection('images')
-        .doc(user.toString())
-        .set({'name': imgAsset, 'asset': id});
+        .doc(userId.toString())
+        .set({'name': imgAsset, 'asset': userId.toString()});
 
     if (image != null) {
       //Upload to Firebase
       var snapshot = await FirebaseStorage.instance
           .ref()
-          .child('workers/$id')
+          .child('workers/$userId')
           .putFile(image!);
       var downloadUrl = await snapshot.ref.getDownloadURL();
       setState(() {
-        workerProf = downloadUrl;
+        userProf = downloadUrl;
       });
     } else {
       print('No Image Path Received');

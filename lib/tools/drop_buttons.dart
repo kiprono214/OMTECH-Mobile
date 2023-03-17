@@ -568,7 +568,7 @@ class AssetSystems extends StatefulWidget {
 
 class _AssetSystemsState extends State<AssetSystems> {
   final Stream<QuerySnapshot> _usersStream =
-      FirebaseFirestore.instance.collection('systems').snapshots();
+      FirebaseFirestore.instance.collection('drop_systems').snapshots();
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -1150,8 +1150,10 @@ class _WorkersState extends State<Workers> {
     return documentsList;
   }
 
-  final Stream<QuerySnapshot> _usersStream =
-      FirebaseFirestore.instance.collection('workers').snapshots();
+  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
+      .collection('workers')
+      .where('company', isEqualTo: username)
+      .snapshots();
   @override
   Widget build(BuildContext context) {
     TextEditingController workersSearchController = TextEditingController();
@@ -1299,6 +1301,8 @@ class Rooms extends StatefulWidget {
   State<Rooms> createState() => _RoomsState();
 }
 
+String? projectRoom;
+
 class _RoomsState extends State<Rooms> {
   Widget _customDropDownExample(BuildContext context, String item) {
     return Container(
@@ -1330,6 +1334,7 @@ class _RoomsState extends State<Rooms> {
   void initState() {
     // TODO: implement initState
     super.initState();
+
     projectId.addListener(() {
       setState(() {});
     });
@@ -1362,6 +1367,12 @@ class _RoomsState extends State<Rooms> {
 
   @override
   Widget build(BuildContext context) {
+    projectId.addListener(() {
+      setState(() {});
+    });
+    projectName.addListener(() {
+      setState(() {});
+    });
     TextEditingController roomSearchController = TextEditingController();
     roomSearchController.addListener(() {
       setState(() {});
@@ -1891,6 +1902,186 @@ class AssetDrop extends StatefulWidget {
 class _AssetDropState extends State<AssetDrop> {
   final Stream<QuerySnapshot> _usersStream =
       FirebaseFirestore.instance.collection('assets').snapshots();
+
+  List<DocumentSnapshot> documents = [];
+
+  Widget _customDropDownExample(BuildContext context, String item) {
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.transparent, width: 0.0)),
+    );
+  }
+
+  Widget _customPopupItemBuilderExample(
+      BuildContext context, DocumentSnapshot item, bool isSelected) {
+    return Container(
+        margin: EdgeInsets.symmetric(horizontal: 8),
+        decoration: !isSelected
+            ? null
+            : BoxDecoration(
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(5),
+                color: Colors.white,
+              ),
+        child: Container(
+            alignment: Alignment.centerLeft,
+            height: 30,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+            child: Text(item.get('name'))));
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  List<DocumentSnapshot> getList(
+      TextEditingController controller, List<DocumentSnapshot> documentsList) {
+    if (controller.text.length > 0) {
+      documentsList = documentsList.where((element) {
+        return element
+            .get('name')
+            .toString()
+            .toLowerCase()
+            .contains(controller.text.toLowerCase());
+      }).toList();
+    }
+    return documentsList;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController searchController = TextEditingController();
+    searchController.addListener(() {
+      setState(() {});
+    });
+    final searchField = TextFormField(
+        autofocus: false,
+        controller: searchController,
+        obscureText: false,
+        validator: (value) {
+          RegExp regex = RegExp(r'^.{6,}$');
+          return null;
+        },
+        onSaved: (value) {
+          searchController.text = value!;
+        },
+        textInputAction: TextInputAction.done,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          //prefixIcon: Icon(Icons.vpn_key),
+          contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+          hintText: "What are you looking for?",
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(color: Colors.transparent, width: 0.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide:
+                const BorderSide(color: Colors.orangeAccent, width: 0.8),
+          ),
+        ));
+    return StreamBuilder<QuerySnapshot>(
+        stream: _usersStream,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          // Safety check to ensure that snapshot contains data
+          // without this safety check, StreamBuilder dirty state warnings will be thrown
+          if (!snapshot.hasData) {
+            return DecoratedBox(
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8)));
+          }
+
+          documents = snapshot.data!.docs;
+
+          return DropdownSearch<DocumentSnapshot>(
+            items: getList(searchController, documents),
+            itemAsString: (item) {
+              return item.get('name');
+            },
+            selectedItem: assetButton,
+            onChanged: (value) {
+              assetName.text = value?.get('name');
+              w_o_engineer.text = value?.get('engineer');
+              w_o_category.text = value?.get('subsystem');
+              assetIdController.text = value!.id;
+              assetDesignRef.text = value.get('design');
+              uniqueAssetId.text = value.get('unique_id');
+              assetProject.text = value.get('project');
+              assetLocation.text = value.get('room');
+              assetButton = value;
+            },
+            dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+              // suffixIcon:
+              //     const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+              filled: true,
+              hoverColor: Colors.white70,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.black87, width: 0.2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide:
+                    const BorderSide(color: Colors.orangeAccent, width: 0.8),
+              ),
+            )),
+            popupProps: PopupProps.menu(
+                emptyBuilder: _customDropDownExample,
+                menuProps: MenuProps(
+                    backgroundColor: Colors.white,
+                    borderRadius: BorderRadius.circular(12)),
+                showSearchBox: true,
+                searchFieldProps: TextFieldProps(
+                    controller: searchController,
+                    cursorColor: Colors.orange,
+                    cursorWidth: 1,
+                    decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        //prefixIcon: Icon(Icons.vpn_key),
+                        contentPadding:
+                            const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                        hintText: "Search",
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: Colors.black87, width: 0.8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                              color: Colors.orangeAccent, width: 0.8),
+                        )),
+                    textInputAction: TextInputAction.search),
+                itemBuilder: _customPopupItemBuilderExample),
+          );
+        });
+  }
+}
+
+class CompanyAssetDrop extends StatefulWidget {
+  const CompanyAssetDrop({Key? key}) : super(key: key);
+
+  @override
+  State<CompanyAssetDrop> createState() => _CompanyAssetDropState();
+}
+
+class _CompanyAssetDropState extends State<CompanyAssetDrop> {
+  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
+      .collection('assets')
+      .where('client', isEqualTo: username)
+      .snapshots();
 
   List<DocumentSnapshot> documents = [];
 

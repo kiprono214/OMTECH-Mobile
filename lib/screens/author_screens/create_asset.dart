@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AssetDetailBackPress extends ConsumerWidget {
@@ -22,9 +21,9 @@ class AssetDetailBackPress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
+    return InkWell(
         onTap: () {
-          _selectPage(context, ref, 'assets');
+          Navigator.of(context).pop();
         },
         child: Container(
             width: 60,
@@ -224,7 +223,7 @@ class _CreateAssetState extends State<CreateAsset> {
           fillColor: Colors.white,
           //prefixIcon: Icon(Icons.mail),
           contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-          // hintText: "Email",
+          hintText: "Model",
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.black87, width: 0.2),
@@ -397,6 +396,12 @@ class _CreateAssetState extends State<CreateAsset> {
                   width: double.infinity,
                   height: 50,
                   child: designField,
+                ),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  width: double.infinity,
+                  height: 50,
+                  child: modelField,
                 ),
                 Container(
                   margin: const EdgeInsets.only(bottom: 6),
@@ -637,13 +642,13 @@ class _CreateAssetState extends State<CreateAsset> {
     }).then((value) => {_showDialog('Asset Added')});
   }
 
-  Future<void> _showDialog(String string) async {
+  Future<void> _showDialog(String? message) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(string),
+          title: Text(message!),
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
@@ -652,7 +657,16 @@ class _CreateAssetState extends State<CreateAsset> {
               ],
             ),
           ),
-          actions: <Widget>[OK()],
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                // Navigator.of(context).pop();
+                Navigator.pop(context); // pop current page
+                Navigator.of(context).pop(); // push it back in
+              },
+            ),
+          ],
         );
       },
     );
@@ -705,13 +719,21 @@ class _CreateAssetState extends State<CreateAsset> {
   File? image;
   Future pickImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'svg'],
+      );
+
+      PlatformFile plat = result!.files.first;
+
+      // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // if (image == null) return;
+      final imageTemp = File(plat.path!);
 
       setState(() {
         this.image = imageTemp;
-        imgAsset = image.name;
+        imgAsset = plat.name;
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
@@ -1712,7 +1734,7 @@ class _EditAssetState extends State<EditAsset> {
           fillColor: Colors.white,
           //prefixIcon: Icon(Icons.mail),
           contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-          // hintText: "Email",
+          hintText: "Model",
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.black87, width: 0.2),
@@ -1897,6 +1919,12 @@ class _EditAssetState extends State<EditAsset> {
                   width: double.infinity,
                   height: 50,
                   child: designField,
+                ),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  width: double.infinity,
+                  height: 50,
+                  child: modelField,
                 ),
                 Container(
                   margin: const EdgeInsets.only(bottom: 6),
@@ -2137,13 +2165,13 @@ class _EditAssetState extends State<EditAsset> {
     }).then((value) => {_showDialog('Asset Updated')});
   }
 
-  Future<void> _showDialog(String string) async {
+  Future<void> _showDialog(String? message) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(string),
+          title: Text(message!),
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
@@ -2152,7 +2180,16 @@ class _EditAssetState extends State<EditAsset> {
               ],
             ),
           ),
-          actions: <Widget>[OK()],
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                // Navigator.of(context).pop();
+                Navigator.pop(context); // pop current page
+                Navigator.of(context).pop(); // push it back in
+              },
+            ),
+          ],
         );
       },
     );
@@ -2205,13 +2242,21 @@ class _EditAssetState extends State<EditAsset> {
   File? image;
   Future pickImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'svg'],
+      );
+
+      PlatformFile plat = result!.files.first;
+
+      // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // if (image == null) return;
+      final imageTemp = File(plat.path!);
 
       setState(() {
         this.image = imageTemp;
-        imgAsset = image.name;
+        imgAsset = plat.name;
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');

@@ -1,3 +1,4 @@
+import 'package:OMTECH/screens/author_screens/author_home.dart';
 import 'package:OMTECH/screens/author_screens/work_order_detals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -5,12 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../authentication/login.dart';
+
 class BackPress extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
         onTap: () {
-          Navigator.of(context).pop();
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: ((context) => AuthorHome())));
         },
         child: Container(
             width: 60,
@@ -85,7 +89,7 @@ class _CompletedState extends State<Completed> {
                   child: Column(
                     children: [
                       const SizedBox(
-                        height: 40,
+                        height: 20,
                       ),
                       Stack(
                         children: [
@@ -94,7 +98,7 @@ class _CompletedState extends State<Completed> {
                             width: double.infinity,
                             alignment: Alignment.center,
                             child: const Text(
-                              'Jobs On Hold',
+                              'Completed',
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 22),
                             ),
@@ -241,6 +245,7 @@ class _CompletedState extends State<Completed> {
 
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('new_work_orders')
+      .where('author', isEqualTo: username)
       .where('status', isEqualTo: 'Completed')
       .snapshots();
 

@@ -257,6 +257,7 @@ class _ReactiveMState extends State<ReactiveM> {
 
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('new_work_orders')
+      .where('client', isEqualTo: username)
       .where('nature', isEqualTo: 'Reactive')
       .snapshots();
 

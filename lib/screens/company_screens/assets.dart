@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 
+import '../../tools/drop_buttons.dart';
+
 class AssetBackPress extends ConsumerWidget {
   void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
     if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
@@ -36,12 +38,25 @@ class CreateAssetPress extends ConsumerWidget {
     }
   }
 
+  void getProjId(BuildContext context) async {
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .where('title', isEqualTo: titleClick)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        projectId.text = doc.id;
+      }
+    });
+    // Navigator.of(context)
+    //     .push(MaterialPageRoute(builder: (context) => CreateAsset()));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: ((context) => CreateAsset())));
+        getProjId(context);
       },
       child: Container(
           margin: const EdgeInsets.only(bottom: 100),
@@ -122,7 +137,6 @@ class _AssetsStreamState extends State<AssetsStream> {
         ));
 
     return Scaffold(
-      floatingActionButton: CreateAssetPress(),
       body: Container(
         alignment: Alignment.topCenter,
         height: double.infinity,

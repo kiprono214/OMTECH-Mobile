@@ -216,7 +216,7 @@ class _ViewProfileState extends State<ViewProfile> {
                                           fontWeight: FontWeight.w300)),
                                 ),
                                 const Text(
-                                  'Asset Engineer',
+                                  'Client',
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w400),

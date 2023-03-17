@@ -8,27 +8,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-String _assetId = '',
-    _imgUrl = '',
-    _date = '',
-    _id = '',
-    _name = '',
-    _location = '',
-    _project = '',
-    _design = '',
-    _serial = '',
-    _model = '',
-    _status = '',
-    _system = '',
-    _subsystem = '',
-    _type = '',
-    _engineer = '',
-    _expectancy = '',
-    _details = '';
-
 class AssetWorkOrders extends StatefulWidget {
-  AssetWorkOrders({Key? key, required this.uniqueId}) : super(key: key);
-  String uniqueId;
+  AssetWorkOrders(
+      {required this.assetId,
+      required this.date,
+      required this.id,
+      required this.name,
+      required this.project,
+      required this.design,
+      required this.serial,
+      required this.location,
+      required this.model,
+      required this.status,
+      required this.system,
+      required this.subsystem,
+      required this.type,
+      required this.engineer,
+      required this.expectancy,
+      required this.details});
+
+  String assetId,
+      date,
+      id,
+      name,
+      location,
+      project,
+      design,
+      serial,
+      model,
+      status,
+      system,
+      subsystem,
+      type,
+      engineer,
+      expectancy,
+      details;
 
   @override
   State<AssetWorkOrders> createState() => _AssetWorkOrdersState();
@@ -46,7 +60,7 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
     // TODO: implement initState
     super.initState();
     setState(() {
-      id = widget.uniqueId;
+      id = widget.id;
     });
   }
 
@@ -54,7 +68,7 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
         .collection('new_work_orders')
-        .where('asset_id', isEqualTo: widget.uniqueId)
+        .where('asset_id', isEqualTo: widget.id)
         .snapshots();
     searchController.addListener(() {
       setState(() {});
@@ -97,8 +111,7 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
         floatingActionButton: GestureDetector(
           onTap: () {
             Navigator.of(context).push(MaterialPageRoute(
-                builder: ((context) =>
-                    CreateWorkOrder(assetId: widget.uniqueId))));
+                builder: ((context) => CreateWorkOrder(assetId: widget.id))));
           },
           child: Container(
               margin: const EdgeInsets.only(bottom: 100),
@@ -137,23 +150,23 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
                               onTap: () {
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (context) => AssetDetails(
-                                        assetId: _assetId,
-                                        date: _date,
-                                        id: _id,
-                                        imgUrl: _imgUrl,
-                                        name: _name,
-                                        project: _project,
-                                        design: _design,
-                                        serial: _serial,
-                                        location: _location,
-                                        model: _model,
-                                        status: _status,
-                                        system: _system,
-                                        subsystem: _subsystem,
-                                        type: _type,
-                                        engineer: _engineer,
-                                        expectancy: _expectancy,
-                                        details: _details)));
+                                        assetId: widget.assetId,
+                                        date: widget.date,
+                                        id: id,
+                                        imgUrl: '',
+                                        name: widget.name,
+                                        project: widget.project,
+                                        design: widget.design,
+                                        serial: widget.serial,
+                                        location: widget.location,
+                                        model: widget.model,
+                                        status: widget.status,
+                                        system: widget.system,
+                                        subsystem: widget.subsystem,
+                                        type: widget.type,
+                                        engineer: widget.engineer,
+                                        expectancy: widget.expectancy,
+                                        details: widget.details)));
                               },
                               child: Container(
                                   width: 60,

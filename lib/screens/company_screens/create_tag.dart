@@ -11,7 +11,6 @@ import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../authentication/login.dart';
@@ -184,7 +183,7 @@ class _CreateTagState extends State<CreateTag> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        _pickImage();
+                        // _pickImage();
                       },
                       child: Container(
                         margin: const EdgeInsets.only(top: 8),
@@ -223,7 +222,7 @@ class _CreateTagState extends State<CreateTag> {
                     SizedBox(width: 30),
                     GestureDetector(
                       onTap: () {
-                        _pickVideo();
+                        // _pickVideo();
                       },
                       child: Container(
                         margin: const EdgeInsets.only(top: 8),
@@ -356,6 +355,7 @@ class _CreateTagState extends State<CreateTag> {
     //   _showAttDialog('Some details missing');
     //   return;
     // }
+
     await FirebaseFirestore.instance
         .collection('new_actions')
         .doc(workOrderId.toString())
@@ -367,10 +367,15 @@ class _CreateTagState extends State<CreateTag> {
       'room': roomName.text,
       'project': assetProject.text,
       'asset': assetName.text,
+      'author': author,
+      'client': client,
+      'worker': '',
+      'engineer': '',
+      'company': username,
       'assetId': assetId.text,
       'description': comment.text,
       'created_by': username,
-      'creator_access': 'worker',
+      'creator_access': 'company',
     }).then((value) {
       _showDialog('Tag Added');
     });
@@ -531,71 +536,71 @@ class _CreateTagState extends State<CreateTag> {
 
   String? imgAsset;
 
-  Future<void> _pickImage() async {
-    // opens storage to pick files and the picked file or files
-    // are assigned into result and if no file is chosen result is null.
-    // you can also toggle "allowMultiple" true or false depending on your need
-    final result =
-        await ImagePicker.platform.getImage(source: ImageSource.gallery);
-    //   allowMultiple: false,
-    //   type: FileType.custom,
-    //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
-    // );
+  // Future<void> _pickImage() async {
+  //   // opens storage to pick files and the picked file or files
+  //   // are assigned into result and if no file is chosen result is null.
+  //   // you can also toggle "allowMultiple" true or false depending on your need
+  //   final result =
+  //       await ImagePicker.platform.getImage(source: ImageSource.gallery);
+  //   //   allowMultiple: false,
+  //   //   type: FileType.custom,
+  //   //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
+  //   // );
 
-    File plat = File(result!.path);
+  //   File plat = File(result!.path);
 
-    // if no file is picked
-    if (result == null) return;
+  //   // if no file is picked
+  //   if (result == null) return;
 
-    setState(() {
-      assetImg = result.path;
-      imgAsset = result.name;
-    });
+  //   setState(() {
+  //     assetImg = result.path;
+  //     imgAsset = result.name;
+  //   });
 
-    getMedia();
-    addMedia();
+  //   getMedia();
+  //   addMedia();
 
-    String tempId = workOrderId.toString();
+  //   String tempId = workOrderId.toString();
 
-    await FirebaseStorage.instance
-        .ref('new_work_orders/$tempId/$attId')
-        .putData(assetImg);
+  //   await FirebaseStorage.instance
+  //       .ref('new_work_orders/$tempId/$attId')
+  //       .putData(assetImg);
 
-    // await _showAttDialog('Attachment File Added');
-  }
+  //   // await _showAttDialog('Attachment File Added');
+  // }
 
-  Future<void> _pickVideo() async {
-    // opens storage to pick files and the picked file or files
-    // are assigned into result and if no file is chosen result is null.
-    // you can also toggle "allowMultiple" true or false depending on your need
-    final result =
-        await ImagePicker.platform.getVideo(source: ImageSource.gallery);
-    //   allowMultiple: false,
-    //   type: FileType.custom,
-    //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
-    // );
+  // Future<void> _pickVideo() async {
+  //   // opens storage to pick files and the picked file or files
+  //   // are assigned into result and if no file is chosen result is null.
+  //   // you can also toggle "allowMultiple" true or false depending on your need
+  //   final result =
+  //       await ImagePicker.platform.getVideo(source: ImageSource.gallery);
+  //   //   allowMultiple: false,
+  //   //   type: FileType.custom,
+  //   //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
+  //   // );
 
-    File plat = File(result!.path);
+  //   File plat = File(result!.path);
 
-    // if no file is picked
-    if (result == null) return;
+  //   // if no file is picked
+  //   if (result == null) return;
 
-    setState(() {
-      assetImg = result.path;
-      imgAsset = result.name;
-    });
+  //   setState(() {
+  //     assetImg = result.path;
+  //     imgAsset = result.name;
+  //   });
 
-    getMedia();
-    addMedia();
+  //   getMedia();
+  //   addMedia();
 
-    String tempId = workOrderId.toString();
+  //   String tempId = workOrderId.toString();
 
-    await FirebaseStorage.instance
-        .ref('new_work_orders/$tempId/$attId')
-        .putData(assetImg);
+  //   await FirebaseStorage.instance
+  //       .ref('new_work_orders/$tempId/$attId')
+  //       .putData(assetImg);
 
-    // await _showAttDialog('Attachment File Added');
-  }
+  //   // await _showAttDialog('Attachment File Added');
+  // }
 
   Future<void> _showAttDialog(String string) async {
     return showDialog<void>(
@@ -1089,7 +1094,7 @@ class _EditTagState extends State<EditTag> {
                 SizedBox(height: 10),
                 GestureDetector(
                   onTap: () {
-                    _pickImage();
+                    // _pickImage();
                   },
                   child: Container(
                     margin: const EdgeInsets.only(top: 8),
@@ -1423,38 +1428,38 @@ class _EditTagState extends State<EditTag> {
 
   String? imgAsset;
 
-  Future<void> _pickImage() async {
-    // opens storage to pick files and the picked file or files
-    // are assigned into result and if no file is chosen result is null.
-    // you can also toggle "allowMultiple" true or false depending on your need
-    final result =
-        await ImagePicker.platform.getVideo(source: ImageSource.gallery);
-    //   allowMultiple: false,
-    //   type: FileType.custom,
-    //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
-    // );
+  // Future<void> _pickImage() async {
+  //   // opens storage to pick files and the picked file or files
+  //   // are assigned into result and if no file is chosen result is null.
+  //   // you can also toggle "allowMultiple" true or false depending on your need
+  //   final result =
+  //       await ImagePicker.platform.getVideo(source: ImageSource.gallery);
+  //   //   allowMultiple: false,
+  //   //   type: FileType.custom,
+  //   //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
+  //   // );
 
-    File plat = File(result!.path);
+  //   File plat = File(result!.path);
 
-    // if no file is picked
-    if (result == null) return;
+  //   // if no file is picked
+  //   if (result == null) return;
 
-    setState(() {
-      assetImg = result.path;
-      imgAsset = result.name;
-    });
+  //   setState(() {
+  //     assetImg = result.path;
+  //     imgAsset = result.name;
+  //   });
 
-    getMedia();
-    addMedia();
+  //   getMedia();
+  //   addMedia();
 
-    String tempId = workOrderId.toString();
+  //   String tempId = workOrderId.toString();
 
-    await FirebaseStorage.instance
-        .ref('new_work_orders/$tempId/$attId')
-        .putData(assetImg);
+  //   await FirebaseStorage.instance
+  //       .ref('new_work_orders/$tempId/$attId')
+  //       .putData(assetImg);
 
-    // await _showAttDialog('Attachment File Added');
-  }
+  //   // await _showAttDialog('Attachment File Added');
+  // }
 
   Future<void> _showAttDialog(String string) async {
     return showDialog<void>(

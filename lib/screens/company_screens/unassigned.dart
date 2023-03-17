@@ -216,6 +216,7 @@ class _ActionNState extends State<ActionN> {
 
                               return WorkOrderClick(
                                 priority: data['priority'],
+                                status: data['status'],
                                 worker: data['worker'],
                                 name: data['name'],
                                 category: data['category'],
@@ -235,6 +236,8 @@ class _ActionNState extends State<ActionN> {
                                 nature: data['nature'],
                                 frequency: data['frequency'],
                                 id: document.id,
+                                imgUrl: '',
+                                assetDesignRef: '',
                               );
                             }).toList()));
                       }
@@ -254,8 +257,8 @@ class _ActionNState extends State<ActionN> {
 
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('new_work_orders')
-      .where('worker', isEqualTo: '')
       .where('assignee', isEqualTo: username)
+      .where('worker', isEqualTo: '')
       .snapshots();
 
   List projects = [];
@@ -282,8 +285,8 @@ class _ActionNState extends State<ActionN> {
 class WorkOrderClick extends ConsumerStatefulWidget {
   WorkOrderClick(
       {required this.name,
-      required this.category,
       required this.worker,
+      required this.category,
       required this.date,
       required this.address,
       required this.project,
@@ -294,17 +297,21 @@ class WorkOrderClick extends ConsumerStatefulWidget {
       required this.room,
       required this.creator,
       required this.frequency,
+      required this.priority,
       required this.nature,
       required this.lastMaintained,
       required this.asset,
       required this.engineer,
       required this.id,
       required this.assetId,
-      required this.priority});
+      required this.assetDesignRef,
+      required this.imgUrl,
+      required this.status});
 
-  String priority;
+  String? from;
 
   String name;
+  String priority;
   String worker;
   String category;
   String date;
@@ -323,8 +330,9 @@ class WorkOrderClick extends ConsumerStatefulWidget {
   String engineer;
   String id;
   String assetId;
-  String imgUrl = '';
-
+  String assetDesignRef;
+  String imgUrl;
+  String status;
   @override
   ConsumerState<WorkOrderClick> createState() => _WorkOrderClickState();
 }
@@ -408,6 +416,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => WorkOrderDetails(
+                  status: widget.status,
                   worker: widget.worker,
                   name: widget.name,
                   category: widget.category,

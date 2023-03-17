@@ -96,7 +96,7 @@ class _ReactiveMState extends State<ReactiveM> {
                   child: Column(
                     children: [
                       const SizedBox(
-                        height: 40,
+                        height: 20,
                       ),
                       Stack(
                         children: [
@@ -252,6 +252,7 @@ class _ReactiveMState extends State<ReactiveM> {
 
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('new_work_orders')
+      .where('author', isEqualTo: username)
       .where('nature', isEqualTo: 'Reactive')
       .snapshots();
 

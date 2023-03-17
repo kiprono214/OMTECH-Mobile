@@ -1,11 +1,17 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:OMTECH/authentication/login.dart';
 import 'package:OMTECH/screens/company_screens/company_home.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BackPress extends ConsumerWidget {
   void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
@@ -41,7 +47,7 @@ class _ViewProfileState extends State<ViewProfile> {
   Future<dynamic> getData() async {
     //  final DocumentReference user =
     return FirebaseFirestore.instance
-        .collection("authors")
+        .collection("companies")
         .get()
         .then((QuerySnapshot querySnapshot) {
       for (var doc in querySnapshot.docs) {
@@ -211,7 +217,7 @@ class _ViewProfileState extends State<ViewProfile> {
                                           fontWeight: FontWeight.w300)),
                                 ),
                                 const Text(
-                                  'Project Manager',
+                                  'Company',
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w400),
@@ -233,7 +239,7 @@ class _ViewProfileState extends State<ViewProfile> {
                                           fontWeight: FontWeight.w300)),
                                 ),
                                 Text(
-                                  'Omtech Ltd',
+                                  username,
                                   style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w400),
@@ -611,6 +617,88 @@ class _ViewProfileState extends State<ViewProfile> {
         );
       },
     );
+  }
+
+  Widget getHolder() {
+    if (userProf == null) {
+      return GestureDetector(
+        onTap: (() {
+          pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
+          child: SvgPicture.asset(
+            'assets/images/image 3.svg',
+            height: 108,
+            width: 108,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: (() {
+          pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(54),
+          child: Image.network(
+            userProf!,
+            height: 108,
+            width: 108,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  String? assetImg;
+
+  String? imgAsset;
+
+  String? imgUrl;
+
+  File? image;
+  Future pickImage() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'svg'],
+      );
+
+      PlatformFile plat = result!.files.first;
+
+      // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // if (image == null) return;
+      final imageTemp = File(plat.path!);
+
+      setState(() {
+        this.image = imageTemp;
+        imgAsset = plat.name;
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+    await FirebaseFirestore.instance
+        .collection('images')
+        .doc(userId.toString())
+        .set({'name': imgAsset, 'asset': userId.toString()});
+
+    if (image != null) {
+      //Upload to Firebase
+      var snapshot = await FirebaseStorage.instance
+          .ref()
+          .child('companies/$userId')
+          .putFile(image!);
+      var downloadUrl = await snapshot.ref.getDownloadURL();
+      setState(() {
+        userProf = downloadUrl;
+      });
+    } else {
+      print('No Image Path Received');
+    }
   }
 }
 

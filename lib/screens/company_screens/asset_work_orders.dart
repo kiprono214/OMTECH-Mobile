@@ -233,9 +233,9 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
                                   document.data()! as Map<String, dynamic>;
 
                               return WorkOrderClick(
-                                worker: data['worker'],
-                                status: data['status'],
                                 priority: data['priority'],
+                                status: data['status'],
+                                worker: data['worker'],
                                 name: data['name'],
                                 category: data['category'],
                                 address: data['address'],
@@ -254,6 +254,8 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
                                 nature: data['nature'],
                                 frequency: data['frequency'],
                                 id: document.id,
+                                imgUrl: '',
+                                assetDesignRef: '',
                               );
                             }).toList()));
                       }
@@ -273,36 +275,37 @@ class _AssetWorkOrdersState extends State<AssetWorkOrders> {
 }
 
 class WorkOrderClick extends ConsumerStatefulWidget {
-  WorkOrderClick({
-    required this.name,
-    required this.category,
-    required this.date,
-    required this.address,
-    required this.project,
-    required this.author,
-    required this.client,
-    required this.date_created,
-    required this.company,
-    required this.room,
-    required this.creator,
-    required this.frequency,
-    required this.nature,
-    required this.lastMaintained,
-    required this.asset,
-    required this.engineer,
-    required this.id,
-    required this.status,
-    required this.assetId,
-    required this.worker,
-    required this.priority,
-  });
+  WorkOrderClick(
+      {required this.name,
+      required this.worker,
+      required this.category,
+      required this.date,
+      required this.address,
+      required this.project,
+      required this.author,
+      required this.client,
+      required this.date_created,
+      required this.company,
+      required this.room,
+      required this.creator,
+      required this.frequency,
+      required this.priority,
+      required this.nature,
+      required this.lastMaintained,
+      required this.asset,
+      required this.engineer,
+      required this.id,
+      required this.assetId,
+      required this.assetDesignRef,
+      required this.imgUrl,
+      required this.status});
 
-  String priority;
+  String? from;
 
   String name;
-  String category;
-  String status;
+  String priority;
   String worker;
+  String category;
   String date;
   String address;
   String project;
@@ -319,8 +322,9 @@ class WorkOrderClick extends ConsumerStatefulWidget {
   String engineer;
   String id;
   String assetId;
-  String imgUrl = '';
-
+  String assetDesignRef;
+  String imgUrl;
+  String status;
   @override
   ConsumerState<WorkOrderClick> createState() => _WorkOrderClickState();
 }
@@ -396,14 +400,11 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
     // TODO: implement build
     return GestureDetector(
         onTap: () {
-          if (imgUrl == '') {
-            getImg();
-          }
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => WorkOrderDetails(
-                  // status: widget.status,
-                  name: widget.name,
+                  status: widget.status,
                   worker: widget.worker,
+                  name: widget.name,
                   category: widget.category,
                   date: widget.date,
                   address: widget.address,
@@ -428,7 +429,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
           children: [
             Container(
               alignment: Alignment.centerLeft,
-              height: 120,
+              height: 140,
               margin: const EdgeInsets.only(top: 12, left: 20, right: 20),
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               decoration: BoxDecoration(
@@ -445,7 +446,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
                         children: [
                           Container(
                             width: 288,
-                            height: 22,
+                            height: 25,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
@@ -476,7 +477,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
                           ),
                           Container(
                             width: 288,
-                            height: 22,
+                            height: 25,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
@@ -507,7 +508,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
                           ),
                           Container(
                             width: 288,
-                            height: 22,
+                            height: 25,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
@@ -538,7 +539,7 @@ class _WorkOrderClickState extends ConsumerState<WorkOrderClick> {
                           ),
                           Container(
                             width: 288,
-                            height: 22,
+                            height: 25,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [

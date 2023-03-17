@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../authentication/login.dart';
+
 class BackPress extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -243,6 +245,7 @@ class _CompletedState extends State<Completed> {
 
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('new_work_orders')
+      .where('client', isEqualTo: username)
       .where('status', isEqualTo: 'Completed')
       .snapshots();
 

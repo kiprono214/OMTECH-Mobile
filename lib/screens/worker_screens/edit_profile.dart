@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:OMTECH/authentication/login.dart';
 import 'package:OMTECH/screens/author_screens/author_home.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 
 class BackPress extends ConsumerWidget {
   void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
@@ -663,13 +663,21 @@ class _ViewProfileState extends State<ViewProfile> {
   File? image;
   Future pickImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'svg'],
+      );
+
+      PlatformFile plat = result!.files.first;
+
+      // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      // if (image == null) return;
+      final imageTemp = File(plat.path!);
 
       setState(() {
         this.image = imageTemp;
-        imgAsset = image.name;
+        imgAsset = plat.name;
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
@@ -683,7 +691,7 @@ class _ViewProfileState extends State<ViewProfile> {
       //Upload to Firebase
       var snapshot = await FirebaseStorage.instance
           .ref()
-          .child('authors/$userId')
+          .child('workers/$userId')
           .putFile(image!);
       var downloadUrl = await snapshot.ref.getDownloadURL();
       setState(() {

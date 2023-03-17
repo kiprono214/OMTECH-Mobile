@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:OMTECH/screens/company_screens/asset_work_orders.dart';
 import 'package:OMTECH/screens/company_screens/company_home.dart';
 import 'package:OMTECH/screens/company_screens/create_asset.dart';
@@ -6,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AssetDetailBackPress extends ConsumerWidget {
   void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
@@ -463,14 +466,26 @@ class _AssetDetailsState extends State<AssetDetails> {
                     child: Row(
                       children: [
                         Container(
+                          width: 100,
+                          height: 100,
                           alignment: Alignment.center,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(50),
-                            child: Image.network(
-                              widget.imgUrl,
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
+                            child: Stack(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/image 3.svg',
+                                  height: 100,
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                                Image.network(
+                                  widget.imgUrl,
+                                  height: 100,
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -543,7 +558,6 @@ class _AssetDetailsState extends State<AssetDetails> {
                               ),
                             ),
                             Container(
-                              height: 20,
                               alignment: Alignment.centerLeft,
                               child: Row(
                                 children: [
@@ -580,40 +594,40 @@ class _AssetDetailsState extends State<AssetDetails> {
                                   const SizedBox(
                                     width: 6,
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) => EditAsset(
-                                                  assetId: assetId,
-                                                  date: date,
-                                                  id: id,
-                                                  name: name,
-                                                  project: project,
-                                                  design: design,
-                                                  serial: serial,
-                                                  location: location,
-                                                  model: model,
-                                                  status: status,
-                                                  system: system,
-                                                  subsystem: subsystem,
-                                                  type: type,
-                                                  engineer: engineer,
-                                                  expectancy: expectancy,
-                                                  details: details)));
-                                    },
-                                    child: Container(
-                                        width: 130,
-                                        alignment: Alignment.centerLeft,
-                                        child: const Text(
-                                          'Update Asset Details',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              color: Color.fromRGBO(
-                                                  0, 122, 255, 1)),
-                                        )),
-                                  ),
+                                  // GestureDetector(
+                                  //   onTap: () {
+                                  //     Navigator.of(context).push(
+                                  //         MaterialPageRoute(
+                                  //             builder: (context) => EditAsset(
+                                  //                 assetId: assetId,
+                                  //                 date: date,
+                                  //                 id: id,
+                                  //                 name: name,
+                                  //                 project: project,
+                                  //                 design: design,
+                                  //                 serial: serial,
+                                  //                 location: location,
+                                  //                 model: model,
+                                  //                 status: status,
+                                  //                 system: system,
+                                  //                 subsystem: subsystem,
+                                  //                 type: type,
+                                  //                 engineer: engineer,
+                                  //                 expectancy: expectancy,
+                                  //                 details: details)));
+                                  //   },
+                                  //   child: Container(
+                                  //       width: 130,
+                                  //       alignment: Alignment.centerLeft,
+                                  //       child: const Text(
+                                  //         'Update Asset Details',
+                                  //         textAlign: TextAlign.start,
+                                  //         style: TextStyle(
+                                  //             fontSize: 14,
+                                  //             color: Color.fromRGBO(
+                                  //                 0, 122, 255, 1)),
+                                  //       )),
+                                  // ),
                                 ],
                               ),
                             )
@@ -909,19 +923,25 @@ class _AssetDetailsState extends State<AssetDetails> {
                                   const SizedBox(
                                     width: 10,
                                   ),
-                                  Container(
-                                    width: 120,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Text(
-                                        doc.entries.first.value,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w400,
-                                            decoration:
-                                                TextDecoration.underline,
-                                            color: const Color.fromRGBO(
-                                                34, 130, 234, 1)),
+                                  InkWell(
+                                    onTap: () {
+                                      downloadFileExample(
+                                          doc.entries.first.value);
+                                    },
+                                    child: Container(
+                                      width: 120,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(
+                                          doc.entries.first.value,
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              color: const Color.fromRGBO(
+                                                  34, 130, 234, 1)),
+                                        ),
                                       ),
                                     ),
                                   )
@@ -955,5 +975,47 @@ class _AssetDetailsState extends State<AssetDetails> {
                     ),
                   )
                 ]))));
+  }
+
+  Future<void> downloadFileExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'attachments/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
+  }
+
+  Future<void> downloadDocExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_orders_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
   }
 }

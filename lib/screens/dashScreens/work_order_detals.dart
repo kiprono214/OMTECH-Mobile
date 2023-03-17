@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:OMTECH/screens/dashScreens/client_home.dart';
 import 'package:OMTECH/screens/author_screens/preventive.dart';
@@ -8,9 +9,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../authentication/login.dart';
@@ -131,7 +135,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
       'user': username,
       'user_type': 'client',
       'date': dateNow,
-      'caption': dateNow
+      'caption': comments.length.toString()
     });
   }
 
@@ -374,6 +378,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                               GestureDetector(
                                 onTap: () {
                                   approveWork();
+
                                   approveWorkComment();
                                   getComments();
                                   setState(() {});
@@ -1154,11 +1159,12 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   Future<void> getMedia() async {
     List<String> temp = [];
 
+    images.clear();
+
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
-        .collection('attachments')
-        .where('type', isEqualTo: 'image')
+        .collection('images')
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1166,12 +1172,10 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
         temp.add(obj);
       }
-      setState(() {
-        images.clear();
-        images.addAll(temp);
-        print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
-        print(images.length.toString());
-      });
+
+      images.addAll(temp);
+      print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
+      print(images.length.toString());
 
       for (var url in images) {
         getImage(url);
@@ -1188,11 +1192,12 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   Future<void> getVideos() async {
     List<String> tempVideo = [];
 
+    videos.clear();
+
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
-        .collection('attachments')
-        .where('type', isEqualTo: 'video')
+        .collection('videos')
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1200,13 +1205,11 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
         tempVideo.add(obj);
       }
-      setState(() {
-        videos.clear();
-        videos.addAll(tempVideo);
-        print(
-            ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
-        print(videos.length.toString());
-      });
+
+      videos.addAll(tempVideo);
+      print(
+          ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
+      print(videos.length.toString());
 
       for (var url in videos) {
         getVideo(url);
@@ -1228,8 +1231,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     String woId = widget.id;
     print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
     print(woId);
-    final ref =
-        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('new_work_orders/$woId/images/$imageId');
     await ref.getDownloadURL().then((value) {
       imageUrls.add(value);
       print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
@@ -1239,8 +1243,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   Future<void> getVideo(String imageId) async {
     String woId = widget.id;
-    final ref =
-        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('new_work_orders/$woId/videos/$imageId');
     await ref.getDownloadURL().then((value) {
       videoUrls.add(value);
       print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,:::::::::');
@@ -1381,6 +1386,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
         .collection('new_work_orders')
         .doc(widget.id)
         .collection('comments')
+        .orderBy('caption', descending: false)
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1428,7 +1434,7 @@ class _CommentBoxState extends State<CommentBox> {
   String getCaption(String user_task) {
     if (user_task == 'creator') {
       return 'Created work order';
-    } else if (user_task == 'starter') {
+    } else if (user_task == 'start') {
       return 'Started work order';
     } else if (user_task == 'pause') {
       return 'Paused work order';
@@ -1458,6 +1464,84 @@ class _CommentBoxState extends State<CommentBox> {
         attachedFiles.add(doc);
       }
     });
+  }
+
+  Future<void> downloadFileExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.commentId;
+    //First you get the documents folder location on the device...
+    // Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    // File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_order_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    // try {
+    //   await FirebaseStorage.instance
+    //       .ref(fileToDownload)
+    //       .writeToFile(downloadToFile);
+    // } on FirebaseException catch (e) {
+    //   // e.g, e.code == 'canceled'
+    //   print('Download error:');
+    // }
+
+    final instructionUrl =
+        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
+
+    var dir = await getExternalStorageDirectory();
+    if (dir != null) {
+      final taskId = await FlutterDownloader.enqueue(
+        url: instructionUrl,
+        headers: {}, // optional: header send with url (auth token etc)
+        savedDir: dir.path,
+        fileName: 'OMT/$id/$commentId/$name',
+        showNotification:
+            true, // show download progress in status bar (for Android)
+        saveInPublicStorage: true,
+        openFileFromNotification:
+            true, // click on notification to open downloaded file (for Android)
+      );
+    }
+  }
+
+  Future<void> downloadDocExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_order_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
+
+    final instructionUrl =
+        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
+
+    var dir = await getExternalStorageDirectory();
+    if (dir != null) {
+      final taskId = await FlutterDownloader.enqueue(
+        url: instructionUrl,
+        headers: {}, // optional: header send with url (auth token etc)
+        savedDir: dir.path,
+        /*fileName:"uniquename",*/
+        showNotification:
+            true, // show download progress in status bar (for Android)
+        saveInPublicStorage: true,
+        openFileFromNotification:
+            true, // click on notification to open downloaded file (for Android)
+      );
+    }
   }
 
   @override
@@ -1516,7 +1600,7 @@ class _CommentBoxState extends State<CommentBox> {
                 ),
               ),
               Text(
-                comment!.get('caption'),
+                comment!.get('date'),
                 style: TextStyle(
                     fontStyle: FontStyle.italic,
                     color: Color.fromRGBO(74, 86, 110, 1),
@@ -1551,19 +1635,28 @@ class _CommentBoxState extends State<CommentBox> {
                     height: 6,
                   ),
                   for (var doc in attachedFiles)
-                    Container(
-                      width: 250,
-                      height: 20,
-                      margin: const EdgeInsets.only(right: 20),
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        doc.get('name'),
-                        style: TextStyle(
-                            fontStyle: FontStyle.normal,
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400),
+                    InkWell(
+                      onTap: () async {
+                        final status = await Permission.storage.request();
+
+                        if (status.isGranted) {
+                          downloadFileExample(doc.get('name'));
+                        }
+                      },
+                      child: Container(
+                        width: 250,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 20),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          doc.get('name'),
+                          style: TextStyle(
+                              fontStyle: FontStyle.normal,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400),
+                        ),
                       ),
                     ),
                   SizedBox(

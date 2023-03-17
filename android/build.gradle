@@ -1,13 +1,24 @@
-buildscript {
-    ext.kotlin_version = '1.6.10'
-    repositories {
-        google()
-        mavenCentral()
-    }
 
+buildscript {
+    ext {
+        java_version = "19"
+        kotlin_version = '1.7.20'
+    }
+    repositories {
+       google()
+       mavenCentral()
+    //    maven { url "https://jitpack.io" }
+    }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.android.tools.build:gradle:7.4.2'
+        // add the following line to use the specified Java version
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20"
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core-ktx:1.7.20'
     }
 }
 
@@ -18,14 +29,11 @@ allprojects {
     }
 }
 
+
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
     project.evaluationDependsOn(':app')
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }

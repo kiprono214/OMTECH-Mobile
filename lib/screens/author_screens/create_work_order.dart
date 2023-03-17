@@ -10,7 +10,7 @@ import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../authentication/login.dart';
@@ -268,7 +268,7 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
                 SizedBox(height: 10),
                 Row(
                   children: [
-                    GestureDetector(
+                    InkWell(
                       onTap: () {
                         _pickImage();
                       },
@@ -307,7 +307,7 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
                       ),
                     ),
                     SizedBox(width: 30),
-                    GestureDetector(
+                    InkWell(
                       onTap: () {
                         _pickVideo();
                       },
@@ -425,6 +425,8 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
       // comment.text = 'Work Order Created on $dateNow';
     }
 
+    String projectIdTemp = '';
+
     await FirebaseFirestore.instance
         .collection('projects')
         .where('title', isEqualTo: assetProject.text)
@@ -435,13 +437,67 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
           address = doc.get('address');
           author = doc.get('managerName');
           client = doc.get('client');
+          projectIdTemp = doc.id;
         });
       }
     });
-    // if (companyAssign == null || natureButton == null) {
-    //   _showAttDialog('Some details missing');
-    //   return;
-    // }
+
+    List companies = [];
+
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .doc(projectIdTemp)
+        .collection('company')
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        companies.add(doc);
+      }
+    });
+
+    String companyCreateId = companies.length.toString();
+
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .doc(projectIdTemp)
+        .collection('company')
+        .doc(companyCreateId)
+        .set({'name': companyAssign!});
+
+    String companyIdAssign = '';
+
+    await FirebaseFirestore.instance
+        .collection('companies')
+        .where('name', isEqualTo: companyAssign!)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        companyIdAssign = doc.id;
+      }
+    });
+
+    List companyProjects = [];
+
+    await FirebaseFirestore.instance
+        .collection('company_projects')
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        companyProjects.add(doc.id);
+      }
+    });
+
+    String compDocId = companyProjects.length.toString();
+
+    await FirebaseFirestore.instance
+        .collection('company_projects')
+        .doc(compDocId)
+        .set({
+      'company': companyIdAssign,
+      'project': projectIdTemp,
+      'asset': widget.assetId
+    }).then((value) {});
+
     await FirebaseFirestore.instance
         .collection('new_work_orders')
         .doc(workOrderId.toString())
@@ -616,6 +672,8 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
         child: Text(frequencyButton!,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400)),
       );
+    } else if (textFrequency.text == 'Preventative') {
+      return Frequency();
     } else {
       frequencyButton = null;
       return Frequency();
@@ -646,70 +704,129 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
 
   String? imgAsset;
 
+  int imgId = 0;
+
+  String imgIdStr = '';
+
   Future<void> _pickImage() async {
     // opens storage to pick files and the picked file or files
     // are assigned into result and if no file is chosen result is null.
     // you can also toggle "allowMultiple" true or false depending on your need
-    final result =
-        await ImagePicker.platform.getImage(source: ImageSource.gallery);
-    //   allowMultiple: false,
-    //   type: FileType.custom,
-    //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
-    // );
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'svg'],
+    );
 
-    File plat = File(result!.path);
+    File plat = File(result!.files.first.path!);
 
     // if no file is picked
     if (result == null) return;
 
     setState(() {
-      assetImg = result.path;
-      imgAsset = result.name;
+      assetImg = result.files.first.path;
+      imgAsset = result.files.first.name;
     });
 
-    getMedia();
-    addMedia();
+    await FirebaseFirestore.instance
+        .collection('n_w_o_images')
+        .doc(workOrderId.toString())
+        .collection('images')
+        .doc(imgIdStr)
+        .set({'name': imgIdStr}).then((value) {
+      setState(() {
+        imgId += 1;
+      });
+    });
 
     String tempId = workOrderId.toString();
 
     await FirebaseStorage.instance
-        .ref('new_work_orders/$tempId/$attId')
+        .ref('new_work_orders/$tempId/images/$imgIdStr')
         .putData(assetImg);
 
-    // await _showAttDialog('Attachment File Added');
+    await _showAttDialog('Image Added');
   }
+
+  int vidId = 0;
+
+  String vidIdStr = '';
 
   Future<void> _pickVideo() async {
     // opens storage to pick files and the picked file or files
     // are assigned into result and if no file is chosen result is null.
     // you can also toggle "allowMultiple" true or false depending on your need
-    final result =
-        await ImagePicker.platform.getVideo(source: ImageSource.gallery);
-    //   allowMultiple: false,
-    //   type: FileType.custom,
-    //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
-    // );
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: ['mp4'],
+    );
 
-    File plat = File(result!.path);
+    setState(() {
+      vidIdStr = vidId.toString();
+    });
+
+    File plat = File(result!.files.first.path!);
 
     // if no file is picked
     if (result == null) return;
 
     setState(() {
-      assetImg = result.path;
-      imgAsset = result.name;
+      assetImg = result.files.first.path;
+      imgAsset = result.files.first.name;
     });
 
     getMedia();
     addMedia();
 
+    await FirebaseFirestore.instance
+        .collection('n_w_o_images')
+        .doc(workOrderId.toString())
+        .collection('videos')
+        .doc(vidIdStr)
+        .set({'name': vidIdStr}).then((value) {
+      setState(() {
+        vidId += 1;
+      });
+    });
+
     String tempId = workOrderId.toString();
 
     await FirebaseStorage.instance
-        .ref('new_work_orders/$tempId/$attId')
+        .ref('new_work_orders/$tempId/videos/$vidIdStr')
         .putData(assetImg);
 
-    // await _showAttDialog('Attachment File Added');
+    await _showAttDialog('Video Added');
+  }
+
+  Future<void> _showDialog(String? message) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(message!),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                // Text('This is a demo alert dialog.'),
+                // Text('Would you like to approve of this message?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                // Navigator.of(context).pop();
+                Navigator.pop(context); // pop current page
+                Navigator.of(context).pop(); // push it back in
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _showAttDialog(String string) async {
@@ -819,6 +936,8 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
       setState(() {
         textFrequency.text = natureButton!;
       });
+    } else {
+      return;
     }
 
     if (textFrequency.text == 'Reactive') {
@@ -847,30 +966,8 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
       'user': username,
       'user_type': 'author',
       'date': dateNow,
-      'caption': dateNow
+      'caption': commentId
     }).then((value) => _showDialog('Work Order Added'));
-  }
-
-  Future<void> _showDialog(String string) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(string),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                OK()
-                // Text('This is a demo alert dialog.'),
-                // Text('Would you like to approve of this message?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[],
-        );
-      },
-    );
   }
 }
 
@@ -1205,43 +1302,86 @@ class _EditWorkOrderState extends State<EditWorkOrder> {
                   ),
                 ),
                 SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {
-                    _pickImage();
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          alignment: Alignment.center,
-                          height: 18,
-                          width: 18,
-                          child: Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 15,
-                          ),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(9),
-                              color: Colors.black),
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        _pickImage();
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
+                              height: 18,
+                              width: 18,
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 15,
+                              ),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(9),
+                                  color: Colors.black),
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Container(
+                              height: 18,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Add Image',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline),
+                              ),
+                            )
+                          ],
                         ),
-                        SizedBox(
-                          width: 8,
-                        ),
-                        Container(
-                          height: 18,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Add Media',
-                            style: TextStyle(
-                                fontSize: 14,
-                                decoration: TextDecoration.underline),
-                          ),
-                        )
-                      ],
+                      ),
                     ),
-                  ),
+                    SizedBox(width: 30),
+                    InkWell(
+                      onTap: () {
+                        _pickVideo();
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
+                              height: 18,
+                              width: 18,
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 15,
+                              ),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(9),
+                                  color: Colors.black),
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Container(
+                              height: 18,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Add Video',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 10,
@@ -1544,37 +1684,99 @@ class _EditWorkOrderState extends State<EditWorkOrder> {
 
   String? imgAsset;
 
+  int imgId = 0;
+
+  String imgIdStr = '';
+
   Future<void> _pickImage() async {
     // opens storage to pick files and the picked file or files
     // are assigned into result and if no file is chosen result is null.
     // you can also toggle "allowMultiple" true or false depending on your need
-    final result =
-        await ImagePicker.platform.getVideo(source: ImageSource.gallery);
-    //   allowMultiple: false,
-    //   type: FileType.custom,
-    //   allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
-    // );
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'svg', 'mp4'],
+    );
 
-    File plat = File(result!.path);
+    File plat = File(result!.files.first.path!);
 
     // if no file is picked
     if (result == null) return;
 
     setState(() {
-      assetImg = result.path;
-      imgAsset = result.name;
+      assetImg = result.files.first.path;
+      imgAsset = result.files.first.name;
+    });
+
+    await FirebaseFirestore.instance
+        .collection('n_w_o_images')
+        .doc(workOrderId.toString())
+        .collection('images')
+        .doc(imgIdStr)
+        .set({'name': imgIdStr}).then((value) {
+      setState(() {
+        imgId += 1;
+      });
+    });
+
+    String tempId = workOrderId.toString();
+
+    await FirebaseStorage.instance
+        .ref('new_work_orders/$tempId/images/$imgIdStr')
+        .putData(assetImg);
+
+    await _showAttDialog('Image Added');
+  }
+
+  int vidId = 0;
+
+  String vidIdStr = '';
+
+  Future<void> _pickVideo() async {
+    // opens storage to pick files and the picked file or files
+    // are assigned into result and if no file is chosen result is null.
+    // you can also toggle "allowMultiple" true or false depending on your need
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: ['mp4'],
+    );
+
+    setState(() {
+      vidIdStr = vidId.toString();
+    });
+
+    File plat = File(result!.files.first.path!);
+
+    // if no file is picked
+    if (result == null) return;
+
+    setState(() {
+      assetImg = result.files.first.path;
+      imgAsset = result.files.first.name;
     });
 
     getMedia();
     addMedia();
 
+    await FirebaseFirestore.instance
+        .collection('n_w_o_images')
+        .doc(workOrderId.toString())
+        .collection('videos')
+        .doc(vidIdStr)
+        .set({'name': vidIdStr}).then((value) {
+      setState(() {
+        vidId += 1;
+      });
+    });
+
     String tempId = workOrderId.toString();
 
     await FirebaseStorage.instance
-        .ref('new_work_orders/$tempId/$attId')
+        .ref('new_work_orders/$tempId/videos/$vidIdStr')
         .putData(assetImg);
 
-    // await _showAttDialog('Attachment File Added');
+    await _showAttDialog('Video Added');
   }
 
   Future<void> _showAttDialog(String string) async {
@@ -1716,27 +1918,35 @@ class _EditWorkOrderState extends State<EditWorkOrder> {
       'user': username,
       'user_type': 'author',
       'date': dateNow,
-      'caption': dateNow
+      'caption': commentId
     }).then((value) => _showDialog('Work Order Added'));
   }
 
-  Future<void> _showDialog(String string) async {
+  Future<void> _showDialog(String? message) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(string),
+          title: Text(message!),
           content: SingleChildScrollView(
             child: ListBody(
-              children: <Widget>[
-                OK()
+              children: const <Widget>[
                 // Text('This is a demo alert dialog.'),
                 // Text('Would you like to approve of this message?'),
               ],
             ),
           ),
-          actions: <Widget>[],
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                // Navigator.of(context).pop();
+                Navigator.pop(context); // pop current page
+                Navigator.of(context).pop(); // push it back in
+              },
+            ),
+          ],
         );
       },
     );

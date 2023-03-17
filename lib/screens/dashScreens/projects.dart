@@ -1,3 +1,4 @@
+import 'package:OMTECH/screens/dashScreens/assets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -409,11 +410,7 @@ class _AssignedState extends State<Assigned> {
                         ],
                       ),
                       const SizedBox(
-                        height: 20,
-                      ),
-                      Tabs(),
-                      const SizedBox(
-                        height: 13,
+                        height: 10,
                       ),
                       Row(children: [
                         Container(
@@ -601,7 +598,8 @@ class _AssetClickState extends ConsumerState<AssetClick> {
     // TODO: implement build
     return GestureDetector(
         onTap: () {
-          _selectPage(context, ref, 'assets');
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => AssetsStream(title: title)));
         },
         child: Container(
             alignment: Alignment.centerLeft,

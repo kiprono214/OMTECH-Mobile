@@ -12,7 +12,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:OMTECH/authentication/login.dart';
 import 'package:OMTECH/screens/engineer_screens/engineer_home.dart';
 import 'package:OMTECH/screens/engineer_screens/edit_profile.dart';
-import 'package:image_picker/image_picker.dart';
 
 class Profile extends ConsumerStatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -451,35 +450,35 @@ class _ProfileState extends ConsumerState<Profile> {
 
   File? image;
   Future pickImage() async {
-    try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+    // try {
+    //   final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    //   if (image == null) return;
+    //   final imageTemp = File(image.path);
 
-      setState(() {
-        this.image = imageTemp;
-        imgAsset = image.name;
-      });
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
-    }
-    await FirebaseFirestore.instance
-        .collection('images')
-        .doc(userId.toString())
-        .set({'name': imgAsset, 'asset': userId.toString()});
+    //   setState(() {
+    //     this.image = imageTemp;
+    //     imgAsset = image.name;
+    //   });
+    // } on PlatformException catch (e) {
+    //   print('Failed to pick image: $e');
+    // }
+    // await FirebaseFirestore.instance
+    //     .collection('images')
+    //     .doc(userId.toString())
+    //     .set({'name': imgAsset, 'asset': userId.toString()});
 
-    if (image != null) {
-      //Upload to Firebase
-      var snapshot = await FirebaseStorage.instance
-          .ref()
-          .child('engineers/$userId')
-          .putFile(image!);
-      var downloadUrl = await snapshot.ref.getDownloadURL();
-      setState(() {
-        userProf = downloadUrl;
-      });
-    } else {
-      print('No Image Path Received');
-    }
+    // if (image != null) {
+    //   //Upload to Firebase
+    //   var snapshot = await FirebaseStorage.instance
+    //       .ref()
+    //       .child('engineers/$userId')
+    //       .putFile(image!);
+    //   var downloadUrl = await snapshot.ref.getDownloadURL();
+    //   setState(() {
+    //     userProf = downloadUrl;
+    //   });
+    // } else {
+    //   print('No Image Path Received');
+    // }
   }
 }

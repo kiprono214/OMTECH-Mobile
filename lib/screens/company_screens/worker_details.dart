@@ -1,5 +1,6 @@
 import 'package:OMTECH/screens/company_screens/company_home.dart';
 import 'package:OMTECH/screens/author_screens/engineer_projects.dart';
+import 'package:OMTECH/screens/company_screens/worker_work_orders.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -209,9 +210,11 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                           width: 20,
                         ),
                         Container(
+                          width: 120,
                           alignment: Alignment.centerLeft,
                           child: Text(
                             widget.address,
+                            textAlign: TextAlign.start,
                             style: TextStyle(fontSize: 16),
                           ),
                         )
@@ -225,7 +228,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) =>
-                              EngineerProjects(name: widget.name)));
+                              WorkerWork(worker: widget.name)));
                     },
                     child: Container(
                       height: 50,

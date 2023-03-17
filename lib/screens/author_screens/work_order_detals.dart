@@ -12,9 +12,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 class BackPress extends ConsumerWidget {
@@ -167,8 +170,25 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     await FirebaseFirestore.instance
         .collection('new_work_orders')
         .doc(widget.id)
-        .update({'last_maintained': dateNow, 'status': 'Submitted'}).then(
-            (value) {
+        .update({
+      'last_maintained': dateNow,
+      'nature': 'Submitted',
+      'status': 'Submitted'
+    }).then((value) {
+      setState(() {
+        // widget.status = 'Complete';
+      });
+    });
+  }
+
+  Future<void> nextWork() async {
+    String dateNow = DateFormat("dd/MM/yyyy").format(DateTime.now());
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .update({
+      'date': lastMaintainedPicked,
+    }).then((value) {
       setState(() {
         // widget.status = 'Complete';
       });
@@ -213,7 +233,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     List docs = [];
 
     String useName =
-        'OMT-Work_Order_Media_File_' + (attachedMedia.length + 1).toString();
+        'OMT-Work_Order_Document_File_' + (attachedMedia.length + 1).toString();
 
     String id = widget.id;
 
@@ -243,14 +263,14 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
       documentButton = 'User Directory';
     }
 
-    FirebaseFirestore.instance
-        .collection('attachments')
-        .doc(attachedFiles.toString())
-        .set({
-      'name': filename,
-      'type': documentButton,
-      'work_order': widget.id
-    });
+    // FirebaseFirestore.instance
+    //     .collection('attachments')
+    //     .doc(attachedFiles.toString())
+    //     .set({
+    //   'name': filename,
+    //   'type': documentButton,
+    //   'work_order': widget.id
+    // });
   }
 
   Future uploadFile(BuildContext context) async {
@@ -269,12 +289,33 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   int attachmentDocId = 0;
 
-  Future<void> getDoc() {
+  String idTemp = '';
+
+  Future<void> getDoc() async {
     //  final DocumentReference user =
     List attachmentsList = [];
 
-    return FirebaseFirestore.instance
-        .collection("attachments")
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .where('user_task', isEqualTo: 'Upload')
+        .get()
+        .then(
+      (value) {
+        for (var doc in value.docs) {
+          setState(() {
+            idTemp = doc.id;
+          });
+        }
+      },
+    );
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc('id')
+        .collection('attached')
         .get()
         .then((QuerySnapshot querySnapshot) {
       for (var doc in querySnapshot.docs) {
@@ -341,8 +382,11 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                     height: 120,
                     width: 300,
                     alignment: Alignment.topCenter,
-                    child: GetAtts(
-                      id: widget.id,
+                    child: SingleChildScrollView(
+                      child: GetAtts(
+                        id: widget.id,
+                        commentId: idTemp,
+                      ),
                     )),
                 Container(
                     width: double.infinity,
@@ -388,6 +432,85 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
         });
   }
 
+  DateTime currentDate = DateTime.now();
+  DateTime lastMaintainedDate = DateTime.now();
+
+  String lastMaintainedPicked = '';
+
+  Future<void> _selectLastDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: currentDate,
+        firstDate: DateTime(2015),
+        lastDate: DateTime(2050));
+    if (pickedDate != null && pickedDate != currentDate) {
+      setState(() {
+        lastMaintainedDate = pickedDate;
+        lastMaintainedPicked =
+            DateFormat("dd/MM/yyyy").format(lastMaintainedDate);
+      });
+    }
+    nextWork();
+    Navigator.pop(context);
+  }
+
+  Future<void> _showDateDialog() async {
+    return showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.all(0),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: Container(
+              height: 300,
+              width: 300,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20), color: Colors.white),
+              child: Column(children: [
+                Container(
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    height: 70,
+                    child: Text(
+                      'Select Date',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                    )),
+                GestureDetector(
+                  onTap: () {
+                    _selectLastDate(context);
+                  },
+                  child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.black87, width: 0.2),
+                      ),
+                      child: Stack(
+                        children: [
+                          Text(
+                            lastMaintainedPicked,
+                            style:
+                                TextStyle(color: Colors.black54, fontSize: 16),
+                          ),
+                          Align(
+                              alignment: Alignment.centerRight,
+                              child:
+                                  SvgPicture.asset('assets/images/Icons.svg'))
+                        ],
+                      )),
+                ),
+              ]),
+            ),
+          );
+        });
+  }
+
   TextEditingController comment = TextEditingController(text: '');
 
   Future<void> submitWorkComment() async {
@@ -403,7 +526,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
       'user': username,
       'user_type': 'author',
       'date': dateNow,
-      'caption': dateNow
+      'caption': comments.length.toString()
     });
   }
 
@@ -415,12 +538,14 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
         .collection('comments')
         .doc(comments.length.toString())
         .set({
-      'user_task': 'upload_doc',
+      'user_task': 'Upload',
       'comment': comment.text,
       'user': username,
       'user_type': 'author',
       'date': dateNow,
-      'caption': dateNow
+      'caption': comments.length.toString()
+    }).then((value) {
+      _showDocDialog();
     });
   }
 
@@ -523,7 +648,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                             children: [
                                               GestureDetector(
                                                 onTap: () {
-                                                  _showDocDialog();
+                                                  updateDocComment();
                                                 },
                                                 child: Container(
                                                   height: 30,
@@ -580,29 +705,36 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                           SizedBox(
                                             height: 10,
                                           ),
-                                          Container(
-                                            width: 212,
-                                            alignment: Alignment.centerLeft,
-                                            child: GestureDetector(
-                                              onTap: () {},
-                                              child: Container(
-                                                height: 30,
-                                                width: 100,
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                  'Update Schedule',
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w500),
+                                          GestureDetector(
+                                            onTap: () {
+                                              _selectLastDate(context);
+                                            },
+                                            child: Container(
+                                              width: 212,
+                                              alignment: Alignment.centerLeft,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  _showDateDialog();
+                                                },
+                                                child: Container(
+                                                  height: 30,
+                                                  width: 100,
+                                                  alignment: Alignment.center,
+                                                  child: Text(
+                                                    'Update Schedule',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                      color: Color.fromRGBO(
+                                                          255, 174, 0, 1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8)),
                                                 ),
-                                                decoration: BoxDecoration(
-                                                    color: Color.fromRGBO(
-                                                        255, 174, 0, 1),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8)),
                                               ),
                                             ),
                                           ),
@@ -627,12 +759,35 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                                 ),
                                               ),
                                               SizedBox(height: 10),
-                                              Row(
-                                                children: [
-                                                  SvgPicture.asset(
-                                                      'assets/images/Icon Stopwatch.svg')
-                                                ],
-                                              )
+                                              (widget.status == 'In Progress')
+                                                  ? Container(
+                                                      height: 30,
+                                                      width: 100,
+                                                      alignment:
+                                                          Alignment.center,
+                                                      child: Text(
+                                                        'In Progress',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500),
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                          color: Color.fromRGBO(
+                                                              46, 55, 73, 1),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8)),
+                                                    )
+                                                  : Container()
+                                              // Row(
+                                              //   children: [
+                                              //     SvgPicture.asset(
+                                              //         'assets/images/Icon Stopwatch.svg')
+                                              //   ],
+                                              // )
                                             ],
                                           ),
                                         ),
@@ -1446,11 +1601,12 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   Future<void> getMedia() async {
     List<String> temp = [];
 
+    images.clear();
+
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
-        .collection('attachments')
-        .where('type', isEqualTo: 'image')
+        .collection('images')
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1458,12 +1614,10 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
         temp.add(obj);
       }
-      setState(() {
-        images.clear();
-        images.addAll(temp);
-        print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
-        print(images.length.toString());
-      });
+
+      images.addAll(temp);
+      print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
+      print(images.length.toString());
 
       for (var url in images) {
         getImage(url);
@@ -1480,11 +1634,12 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   Future<void> getVideos() async {
     List<String> tempVideo = [];
 
+    videos.clear();
+
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
-        .collection('attachments')
-        .where('type', isEqualTo: 'video')
+        .collection('videos')
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1492,13 +1647,11 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
         tempVideo.add(obj);
       }
-      setState(() {
-        videos.clear();
-        videos.addAll(tempVideo);
-        print(
-            ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
-        print(videos.length.toString());
-      });
+
+      videos.addAll(tempVideo);
+      print(
+          ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
+      print(videos.length.toString());
 
       for (var url in videos) {
         getVideo(url);
@@ -1520,8 +1673,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     String woId = widget.id;
     print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
     print(woId);
-    final ref =
-        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('new_work_orders/$woId/images/$imageId');
     await ref.getDownloadURL().then((value) {
       imageUrls.add(value);
       print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
@@ -1531,8 +1685,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   Future<void> getVideo(String imageId) async {
     String woId = widget.id;
-    final ref =
-        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('new_work_orders/$woId/videos/$imageId');
     await ref.getDownloadURL().then((value) {
       videoUrls.add(value);
       print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,:::::::::');
@@ -1671,6 +1826,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
         .collection('new_work_orders')
         .doc(widget.id)
         .collection('comments')
+        .orderBy('caption', descending: false)
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1696,6 +1852,7 @@ class _CommentBoxState extends State<CommentBox> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    getAttachments();
   }
 
   DocumentSnapshot? comment;
@@ -1717,7 +1874,7 @@ class _CommentBoxState extends State<CommentBox> {
   String getCaption(String user_task) {
     if (user_task == 'creator') {
       return 'Created work order';
-    } else if (user_task == 'starter') {
+    } else if (user_task == 'start') {
       return 'Started work order';
     } else if (user_task == 'pause') {
       return 'Paused work order';
@@ -1747,6 +1904,84 @@ class _CommentBoxState extends State<CommentBox> {
         attachedFiles.add(doc);
       }
     });
+  }
+
+  Future<void> downloadFileExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.commentId;
+    //First you get the documents folder location on the device...
+    // Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    // File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_order_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    // try {
+    //   await FirebaseStorage.instance
+    //       .ref(fileToDownload)
+    //       .writeToFile(downloadToFile);
+    // } on FirebaseException catch (e) {
+    //   // e.g, e.code == 'canceled'
+    //   print('Download error:');
+    // }
+
+    final instructionUrl =
+        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
+
+    var dir = await getExternalStorageDirectory();
+    if (dir != null) {
+      final taskId = await FlutterDownloader.enqueue(
+        url: instructionUrl,
+        headers: {}, // optional: header send with url (auth token etc)
+        savedDir: dir.path,
+        fileName: 'OMT/$id/$commentId/$name',
+        showNotification:
+            true, // show download progress in status bar (for Android)
+        saveInPublicStorage: true,
+        openFileFromNotification:
+            true, // click on notification to open downloaded file (for Android)
+      );
+    }
+  }
+
+  Future<void> downloadDocExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_order_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
+
+    final instructionUrl =
+        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
+
+    var dir = await getExternalStorageDirectory();
+    if (dir != null) {
+      final taskId = await FlutterDownloader.enqueue(
+        url: instructionUrl,
+        headers: {}, // optional: header send with url (auth token etc)
+        savedDir: dir.path,
+        /*fileName:"uniquename",*/
+        showNotification:
+            true, // show download progress in status bar (for Android)
+        saveInPublicStorage: true,
+        openFileFromNotification:
+            true, // click on notification to open downloaded file (for Android)
+      );
+    }
   }
 
   @override
@@ -1805,7 +2040,7 @@ class _CommentBoxState extends State<CommentBox> {
                 ),
               ),
               Text(
-                comment!.get('caption'),
+                comment!.get('date'),
                 style: TextStyle(
                     fontStyle: FontStyle.italic,
                     color: Color.fromRGBO(74, 86, 110, 1),
@@ -1840,19 +2075,28 @@ class _CommentBoxState extends State<CommentBox> {
                     height: 6,
                   ),
                   for (var doc in attachedFiles)
-                    Container(
-                      width: 250,
-                      height: 20,
-                      margin: const EdgeInsets.only(right: 20),
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        doc.get('name'),
-                        style: TextStyle(
-                            fontStyle: FontStyle.normal,
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400),
+                    InkWell(
+                      onTap: () async {
+                        final status = await Permission.storage.request();
+
+                        if (status.isGranted) {
+                          downloadFileExample(doc.get('name'));
+                        }
+                      },
+                      child: Container(
+                        width: 250,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 20),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          doc.get('name'),
+                          style: TextStyle(
+                              fontStyle: FontStyle.normal,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400),
+                        ),
                       ),
                     ),
                   SizedBox(
@@ -1869,8 +2113,10 @@ class _CommentBoxState extends State<CommentBox> {
 }
 
 class GetAtts extends StatefulWidget {
-  GetAtts({Key? key, required this.id}) : super(key: key);
+  GetAtts({Key? key, required this.id, required this.commentId})
+      : super(key: key);
   String id;
+  String commentId;
   @override
   State<GetAtts> createState() => _GetAttsState(assetDocId: id);
 }
@@ -1887,8 +2133,11 @@ class _GetAttsState extends State<GetAtts> {
   @override
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> uploads = FirebaseFirestore.instance
-        .collection('attachments')
-        .where('asset', isEqualTo: assetDocId.toString())
+        .collection('new_work_order')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(widget.commentId)
+        .collection('attached')
         .snapshots();
     return Container(
       padding: const EdgeInsets.only(left: 15, right: 15),

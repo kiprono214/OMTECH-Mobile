@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:OMTECH/screens/company_screens/company_home.dart';
 import 'package:OMTECH/screens/company_screens/preventive.dart';
@@ -9,8 +10,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 class BackPress extends ConsumerWidget {
@@ -57,7 +61,8 @@ class WorkOrderDetails extends StatefulWidget {
       required this.id,
       required this.assetId,
       required this.assetDesignRef,
-      required this.imgUrl});
+      required this.imgUrl,
+      required this.status});
 
   String? from;
 
@@ -82,6 +87,7 @@ class WorkOrderDetails extends StatefulWidget {
   String assetId;
   String assetDesignRef;
   String imgUrl;
+  String status;
 
   @override
   State<WorkOrderDetails> createState() => _WorkOrderDetailsState();
@@ -137,6 +143,7 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     getMedia();
     getVideos();
     getImg();
+    getComments();
   }
 
   Color imagesTab = Color.fromRGBO(0, 122, 255, 1);
@@ -151,6 +158,27 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
   List<String> imageUrls = [];
 
   String tabClicked = 'images';
+
+  List<DocumentSnapshot> comments = [];
+
+  String commentId = '0';
+
+  void getComments() async {
+    comments.clear();
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .orderBy('caption', descending: false)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        comments.add(doc);
+      }
+    });
+  }
+
+  TextEditingController comment = TextEditingController(text: '');
 
   String newUrl = '';
 
@@ -266,12 +294,33 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                                           ),
                                         ),
                                         SizedBox(height: 10),
-                                        Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                                'assets/images/Icon Stopwatch.svg')
-                                          ],
-                                        )
+                                        (widget.status == 'In Progress')
+                                            ? Container(
+                                                height: 30,
+                                                width: 100,
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  'In Progress',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
+                                                decoration: BoxDecoration(
+                                                    color: Color.fromRGBO(
+                                                        46, 55, 73, 1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                              )
+                                            : Container()
+                                        // Row(
+                                        //   children: [
+                                        //     SvgPicture.asset(
+                                        //         'assets/images/Icon Stopwatch.svg')
+                                        //   ],
+                                        // )
                                       ],
                                     ),
                                   ),
@@ -617,7 +666,18 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
                               fontWeight: FontWeight.w600,
                               fontStyle: FontStyle.italic)),
                     ),
-                    CommentBox(id: widget.id)
+                    Column(
+                      children: [
+                        for (var doc in comments)
+                          CommentBox(
+                            id: widget.id,
+                            commentId: doc.id,
+                          ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 30,
+                    )
                   ])))),
           Visibility(
               visible: visible,
@@ -1120,14 +1180,69 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   TextEditingController viewImg = TextEditingController(text: '');
 
+  Future<void> assignWorker(BuildContext context) async {
+    String projectIdTemp = '';
+
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .where('title', isEqualTo: widget.project)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        projectIdTemp = doc.id;
+      }
+    });
+
+    String workerIdAssign = '';
+
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .where('name', isEqualTo: workerName.text)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        workerIdAssign = doc.id;
+      }
+    });
+
+    List workerProjects = [];
+
+    await FirebaseFirestore.instance
+        .collection('worker_projects')
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        workerProjects.add(doc.id);
+      }
+    });
+
+    String workerDocId = workerProjects.length.toString();
+
+    await FirebaseFirestore.instance
+        .collection('worker_projects')
+        .doc(workerDocId)
+        .set({
+      'worker': workerIdAssign,
+      'project': projectIdTemp,
+      'asset': widget.assetId
+    }).then((value) {});
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .update({'worker': workerName.text}).then((value) {
+      Navigator.pop(context);
+    });
+  }
+
   Future<void> getMedia() async {
     List<String> temp = [];
+
+    images.clear();
 
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
-        .collection('attachments')
-        .where('type', isEqualTo: 'image')
+        .collection('images')
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1135,12 +1250,10 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
         temp.add(obj);
       }
-      setState(() {
-        images.clear();
-        images.addAll(temp);
-        print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
-        print(images.length.toString());
-      });
+
+      images.addAll(temp);
+      print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>');
+      print(images.length.toString());
 
       for (var url in images) {
         getImage(url);
@@ -1154,23 +1267,15 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     });
   }
 
-  Future<void> assignWorker(BuildContext context) async {
-    await FirebaseFirestore.instance
-        .collection('new_work_orders')
-        .doc(widget.id)
-        .update({'worker': workerName.text}).then((value) {
-      Navigator.pop(context);
-    });
-  }
-
   Future<void> getVideos() async {
     List<String> tempVideo = [];
+
+    videos.clear();
 
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(widget.id)
-        .collection('attachments')
-        .where('type', isEqualTo: 'video')
+        .collection('videos')
         .get()
         .then((value) {
       for (var doc in value.docs) {
@@ -1178,13 +1283,11 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
         tempVideo.add(obj);
       }
-      setState(() {
-        videos.clear();
-        videos.addAll(tempVideo);
-        print(
-            ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
-        print(videos.length.toString());
-      });
+
+      videos.addAll(tempVideo);
+      print(
+          ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>>>>>>>>>:::::');
+      print(videos.length.toString());
 
       for (var url in videos) {
         getVideo(url);
@@ -1206,8 +1309,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
     String woId = widget.id;
     print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
     print(woId);
-    final ref =
-        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('new_work_orders/$woId/images/$imageId');
     await ref.getDownloadURL().then((value) {
       imageUrls.add(value);
       print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
@@ -1217,8 +1321,9 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 
   Future<void> getVideo(String imageId) async {
     String woId = widget.id;
-    final ref =
-        FirebaseStorage.instance.ref().child('new_work_orders/$woId/$imageId');
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('new_work_orders/$woId/videos/$imageId');
     await ref.getDownloadURL().then((value) {
       videoUrls.add(value);
       print(',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,:::::::::');
@@ -1457,140 +1562,277 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
 }
 
 class CommentBox extends StatefulWidget {
-  CommentBox({Key? key, required this.id}) : super(key: key);
+  CommentBox({Key? key, required this.id, required this.commentId})
+      : super(key: key);
 
   String id;
+  String commentId;
 
   @override
   State<CommentBox> createState() => _CommentBoxState();
 }
 
 class _CommentBoxState extends State<CommentBox> {
-  List<DocumentSnapshot> comments = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getAttachments();
+  }
+
+  DocumentSnapshot? comment;
+
   void getComment() async {
     await FirebaseFirestore.instance
         .collection('new_work_orders')
         .doc(widget.id)
         .collection('comments')
+        .doc(widget.commentId)
         .get()
         .then((value) {
-      for (var doc in value.docs) {
-        setState(() {
-          comments.add(doc);
-        });
-      }
+      setState(() {
+        comment = value;
+      });
     });
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    getComment();
   }
 
   String getCaption(String user_task) {
     if (user_task == 'creator') {
       return 'Created work order';
+    } else if (user_task == 'start') {
+      return 'Started work order';
+    } else if (user_task == 'pause') {
+      return 'Paused work order';
+    } else if (user_task == 'complete') {
+      return 'Completed work order';
+    } else if (user_task == 'submit') {
+      return 'Submitted order';
+    } else if (user_task == 'approve') {
+      return 'Approved work order';
     } else {
       return '';
     }
   }
 
+  List<DocumentSnapshot> attachedFiles = [];
+
+  void getAttachments() async {
+    await FirebaseFirestore.instance
+        .collection('new_work_orders')
+        .doc(widget.id)
+        .collection('comments')
+        .doc(widget.commentId)
+        .collection('attached')
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        attachedFiles.add(doc);
+      }
+    });
+  }
+
+  Future<void> downloadFileExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.commentId;
+    //First you get the documents folder location on the device...
+    // Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    // File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_order_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    // try {
+    //   await FirebaseStorage.instance
+    //       .ref(fileToDownload)
+    //       .writeToFile(downloadToFile);
+    // } on FirebaseException catch (e) {
+    //   // e.g, e.code == 'canceled'
+    //   print('Download error:');
+    // }
+
+    final instructionUrl =
+        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
+
+    var dir = await getExternalStorageDirectory();
+    if (dir != null) {
+      final taskId = await FlutterDownloader.enqueue(
+        url: instructionUrl,
+        headers: {}, // optional: header send with url (auth token etc)
+        savedDir: dir.path,
+        fileName: 'OMT/$id/$commentId/$name',
+        showNotification:
+            true, // show download progress in status bar (for Android)
+        saveInPublicStorage: true,
+        openFileFromNotification:
+            true, // click on notification to open downloaded file (for Android)
+      );
+    }
+  }
+
+  Future<void> downloadDocExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_order_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
+
+    final instructionUrl =
+        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
+
+    var dir = await getExternalStorageDirectory();
+    if (dir != null) {
+      final taskId = await FlutterDownloader.enqueue(
+        url: instructionUrl,
+        headers: {}, // optional: header send with url (auth token etc)
+        savedDir: dir.path,
+        /*fileName:"uniquename",*/
+        showNotification:
+            true, // show download progress in status bar (for Android)
+        saveInPublicStorage: true,
+        openFileFromNotification:
+            true, // click on notification to open downloaded file (for Android)
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var comment in comments)
-          Container(
-            margin: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                    ),
-                    Container(
-                      height: 18,
-                      width: 55,
-                      alignment: Alignment.center,
-                      child: Text(
-                        comment.get('user_type'),
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(77, 92, 125, 1),
-                          borderRadius: BorderRadius.circular(9)),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      comment.get('user'),
-                      style:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                    ),
-                  ],
+    getComment();
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 30,
+              ),
+              Container(
+                height: 18,
+                width: 55,
+                alignment: Alignment.center,
+                child: Text(
+                  comment!.get('user_type'),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400),
                 ),
-                SizedBox(
-                  height: 10,
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(77, 92, 125, 1),
+                    borderRadius: BorderRadius.circular(9)),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                comment!.get('user'),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 6,
+          ),
+          Row(
+            children: [
+              SizedBox(
+                width: 30,
+              ),
+              Container(
+                width: 180,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  getCaption(comment!.get('user_task')),
+                  style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400),
                 ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                    ),
-                    Container(
-                      width: 180,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        getCaption(comment.get('user_task')),
-                        style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400),
-                      ),
-                    ),
-                    Text(
-                      comment.get('caption'),
+              ),
+              Text(
+                comment!.get('date'),
+                style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Color.fromRGBO(74, 86, 110, 1),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w400),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            children: [
+              SizedBox(
+                width: 30,
+              ),
+              Column(
+                children: [
+                  Container(
+                    width: 250,
+                    margin: const EdgeInsets.only(right: 20),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      comment!.get('comment'),
                       style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Color.fromRGBO(74, 86, 110, 1),
-                          fontSize: 8,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 12,
                           fontWeight: FontWeight.w400),
                     ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 30,
-                    ),
-                    Container(
-                      width: 270,
-                      margin: const EdgeInsets.only(right: 20),
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        comment.get('comment'),
-                        style: TextStyle(
-                            fontStyle: FontStyle.normal,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400),
+                  ),
+                  SizedBox(
+                    height: 6,
+                  ),
+                  for (var doc in attachedFiles)
+                    InkWell(
+                      onTap: () async {
+                        final status = await Permission.storage.request();
+
+                        if (status.isGranted) {
+                          downloadFileExample(doc.get('name'));
+                        }
+                      },
+                      child: Container(
+                        width: 250,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 20),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          doc.get('name'),
+                          style: TextStyle(
+                              fontStyle: FontStyle.normal,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400),
+                        ),
                       ),
-                    )
-                  ],
-                )
-              ],
-            ),
+                    ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                ],
+              )
+            ],
           )
-      ],
+        ],
+      ),
     );
   }
 }

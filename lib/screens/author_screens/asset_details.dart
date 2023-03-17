@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:OMTECH/screens/author_screens/asset_work_orders.dart';
 import 'package:OMTECH/screens/author_screens/author_home.dart';
 import 'package:OMTECH/screens/author_screens/create_asset.dart';
@@ -6,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AssetDetailBackPress extends ConsumerWidget {
   void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
@@ -18,7 +21,7 @@ class AssetDetailBackPress extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
         onTap: () {
-          _selectPage(context, ref, 'assets');
+          Navigator.of(context).pop();
         },
         child: Container(
             width: 60,
@@ -138,26 +141,43 @@ class _AssetDetailsState extends State<AssetDetails> {
     }
   }
 
+  String nameIt = '';
+
   Future<void> getImg() async {
+    String name = '';
+    String design = '';
     await FirebaseFirestore.instance
-        .collection('images')
-        .where('asset', isEqualTo: widget.assetId)
+        .collection('assets')
+        .where('unique_id', isEqualTo: widget.id)
         .get()
         .then((value) {
       for (var doc in value.docs) {
         setState(() {
-          widget.imgUrl = doc.get('name');
-          print(widget.assetId);
+          name = doc.id;
+          design = doc.get('design');
+          print(name);
         });
       }
     });
-    final ref = await FirebaseStorage.instance
-        .ref()
-        .child('asset_images/$widget.imgUrl');
+    await FirebaseFirestore.instance
+        .collection('images')
+        .where('asset', isEqualTo: name)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        setState(() {
+          name = doc.get('name');
+          print(name);
+        });
+      }
+    });
+    final ref =
+        await FirebaseStorage.instance.ref().child('asset_images/$name');
     // no need of the file extension, the name will do fine.
     String temp = await ref.getDownloadURL();
     setState(() {
       widget.imgUrl = temp;
+
       print('????????????????????????????????????' + widget.imgUrl);
     });
   }
@@ -188,6 +208,16 @@ class _AssetDetailsState extends State<AssetDetails> {
           manf_address3 = doc.get('address_three');
         });
       }
+    });
+  }
+
+  void updateStatus() async {
+    await FirebaseFirestore.instance
+        .collection('assets')
+        .doc(assetId)
+        .update({'status': 'Verified'}).then((value) {});
+    setState(() {
+      status = 'Verified';
     });
   }
 
@@ -234,6 +264,7 @@ class _AssetDetailsState extends State<AssetDetails> {
         attachedDocs.add(<String, String>{type: name});
       }
     });
+    setState(() {});
   }
 
   void _showManDialogue() async {
@@ -423,6 +454,46 @@ class _AssetDetailsState extends State<AssetDetails> {
         });
   }
 
+  Widget getHolder() {
+    if (widget.imgUrl == '') {
+      return GestureDetector(
+        onTap: (() {
+          // pickImage();
+        }),
+        child: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(6)),
+          child: SvgPicture.asset(
+            'assets/images/image 3.svg',
+            height: 86,
+            width: 86,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: (() {
+          // pickImage();
+        }),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          // child: SvgPicture.asset(
+          //   'assets/images/image 3.svg',
+          //   height: 86,
+          //   width: 86,
+          //   fit: BoxFit.cover,
+          // ),
+          child: Image.network(
+            widget.imgUrl,
+            height: 86,
+            width: 86,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -439,9 +510,6 @@ class _AssetDetailsState extends State<AssetDetails> {
                       margin:
                           const EdgeInsets.only(left: 20, right: 20, top: 20),
                       child: Column(children: [
-                        const SizedBox(
-                          height: 24,
-                        ),
                         Stack(
                           children: [
                             AssetDetailBackPress(),
@@ -465,14 +533,8 @@ class _AssetDetailsState extends State<AssetDetails> {
                         Container(
                           alignment: Alignment.center,
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Image.network(
-                              widget.imgUrl,
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                              borderRadius: BorderRadius.circular(50),
+                              child: getHolder()),
                         ),
                         const SizedBox(
                           width: 10,
@@ -492,29 +554,45 @@ class _AssetDetailsState extends State<AssetDetails> {
                                       fontSize: 20,
                                     ),
                                   ),
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        height: 15,
-                                        width: 15,
-                                        alignment: Alignment.center,
-                                        child: SvgPicture.asset(
-                                            'assets/images/Vector (6).svg',
-                                            height: 14,
-                                            width: 14),
-                                      ),
-                                      Container(
-                                        height: 15,
-                                        width: 15,
-                                        alignment: Alignment.center,
-                                        child: SvgPicture.asset(
-                                          'assets/images/Vector (7).svg',
-                                          height: 2.7,
-                                          width: 4.5,
-                                        ),
-                                      )
-                                    ],
-                                  )
+                                  (status == 'Verified')
+                                      ? Stack(
+                                          children: [
+                                            Container(
+                                              height: 15,
+                                              width: 15,
+                                              alignment: Alignment.center,
+                                              child: SvgPicture.asset(
+                                                  'assets/images/Vector (6).svg',
+                                                  height: 14,
+                                                  width: 14),
+                                            ),
+                                            Container(
+                                              height: 15,
+                                              width: 15,
+                                              alignment: Alignment.center,
+                                              child: SvgPicture.asset(
+                                                'assets/images/Vector (7).svg',
+                                                height: 2.7,
+                                                width: 4.5,
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                      : InkWell(
+                                          onTap: () {
+                                            updateStatus();
+                                          },
+                                          child: Container(
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              '  Tap to verify',
+                                              style: TextStyle(
+                                                  color: Colors.blue,
+                                                  decoration:
+                                                      TextDecoration.underline),
+                                            ),
+                                          ),
+                                        )
                                 ],
                               ),
                             ),
@@ -543,7 +621,6 @@ class _AssetDetailsState extends State<AssetDetails> {
                               ),
                             ),
                             Container(
-                              height: 20,
                               alignment: Alignment.centerLeft,
                               child: Row(
                                 children: [
@@ -580,7 +657,7 @@ class _AssetDetailsState extends State<AssetDetails> {
                                   const SizedBox(
                                     width: 6,
                                   ),
-                                  GestureDetector(
+                                  InkWell(
                                     onTap: () {
                                       Navigator.of(context).push(
                                           MaterialPageRoute(
@@ -909,19 +986,25 @@ class _AssetDetailsState extends State<AssetDetails> {
                                   const SizedBox(
                                     width: 10,
                                   ),
-                                  Container(
-                                    width: 120,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Text(
-                                        doc.entries.first.value,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w400,
-                                            decoration:
-                                                TextDecoration.underline,
-                                            color: const Color.fromRGBO(
-                                                34, 130, 234, 1)),
+                                  InkWell(
+                                    onTap: () {
+                                      downloadFileExample(
+                                          doc.entries.first.value);
+                                    },
+                                    child: Container(
+                                      width: 120,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(
+                                          doc.entries.first.value,
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              color: const Color.fromRGBO(
+                                                  34, 130, 234, 1)),
+                                        ),
                                       ),
                                     ),
                                   )
@@ -955,5 +1038,47 @@ class _AssetDetailsState extends State<AssetDetails> {
                     ),
                   )
                 ]))));
+  }
+
+  Future<void> downloadFileExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'attachments/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
+  }
+
+  Future<void> downloadDocExample(String name) async {
+    String id = widget.id;
+    String commentId = widget.id;
+    //First you get the documents folder location on the device...
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    //Here you'll specify the file it should be saved as
+    File downloadToFile = File('${appDocDir.path}/$name');
+    //Here you'll specify the file it should download from Cloud Storage
+    String fileToDownload = 'work_orders_held/$id/$commentId/$name';
+
+    //Now you can try to download the specified file, and write it to the downloadToFile.
+    try {
+      await FirebaseStorage.instance
+          .ref(fileToDownload)
+          .writeToFile(downloadToFile);
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      print('Download error:');
+    }
   }
 }

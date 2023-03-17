@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AssetDetailBackPress extends ConsumerWidget {
@@ -574,7 +573,7 @@ class _CreateAssetState extends State<CreateAsset> {
     if (assetImg == null) {
       return GestureDetector(
         onTap: (() {
-          pickImage();
+          // pickImage();
         }),
         child: Container(
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(6)),
@@ -589,7 +588,7 @@ class _CreateAssetState extends State<CreateAsset> {
     } else {
       return GestureDetector(
         onTap: (() {
-          pickImage();
+          // pickImage();
         }),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(6),
@@ -702,108 +701,108 @@ class _CreateAssetState extends State<CreateAsset> {
   }
 
   File? image;
-  Future pickImage() async {
-    try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) return;
-      final imageTemp = File(image.path);
+  // Future pickImage() async {
+  //   try {
+  //     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //     if (image == null) return;
+  //     final imageTemp = File(image.path);
 
-      setState(() {
-        this.image = imageTemp;
-        imgAsset = image.name;
-      });
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
-    }
-    await FirebaseFirestore.instance
-        .collection('images')
-        .doc(assetDocId.toString())
-        .set({'name': imgAsset, 'asset': assetDocId.toString()});
+  //     setState(() {
+  //       this.image = imageTemp;
+  //       imgAsset = image.name;
+  //     });
+  //   } on PlatformException catch (e) {
+  //     print('Failed to pick image: $e');
+  //   }
+  //   await FirebaseFirestore.instance
+  //       .collection('images')
+  //       .doc(assetDocId.toString())
+  //       .set({'name': imgAsset, 'asset': assetDocId.toString()});
 
-    if (image != null) {
-      //Upload to Firebase
-      var snapshot = await FirebaseStorage.instance
-          .ref()
-          .child('asset_images/$imgAsset')
-          .putFile(image!);
-      var downloadUrl = await snapshot.ref.getDownloadURL();
-      setState(() {
-        assetImg = downloadUrl;
-      });
-    } else {
-      print('No Image Path Received');
-    }
-  }
+  //   if (image != null) {
+  //     //Upload to Firebase
+  //     var snapshot = await FirebaseStorage.instance
+  //         .ref()
+  //         .child('asset_images/$imgAsset')
+  //         .putFile(image!);
+  //     var downloadUrl = await snapshot.ref.getDownloadURL();
+  //     setState(() {
+  //       assetImg = downloadUrl;
+  //     });
+  //   } else {
+  //     print('No Image Path Received');
+  //   }
+  // }
 
-  List<Map<dynamic, dynamic>> filesDynamo = [];
+  // List<Map<dynamic, dynamic>> filesDynamo = [];
 
-  String upload = 'not yet';
+  // String upload = 'not yet';
 
-  String filename = '';
+  // String filename = '';
 
-  dynamic fileBytes;
+  // dynamic fileBytes;
 
-  int att = 0;
+  // int att = 0;
 
-  Future uploadFile(BuildContext context) async {
-    for (var file in filesDynamo) {
-      String tempName = file.entries.first.key;
-      dynamic tempBytes = file.entries.first.value;
-      await FirebaseStorage.instance.ref('attachments/$tempName').putFile(
-            File(tempBytes),
-          );
-    }
-    Navigator.pop(context);
-  }
+  // Future uploadFile(BuildContext context) async {
+  //   for (var file in filesDynamo) {
+  //     String tempName = file.entries.first.key;
+  //     dynamic tempBytes = file.entries.first.value;
+  //     await FirebaseStorage.instance.ref('attachments/$tempName').putFile(
+  //           File(tempBytes),
+  //         );
+  //   }
+  //   Navigator.pop(context);
+  // }
 
-  Future<void> _pickFile() async {
-    // opens storage to pick files and the picked file or files
-    // are assigned into result and if no file is chosen result is null.
-    // you can also toggle "allowMultiple" true or false depending on your need
-    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
+  // Future<void> _pickFile() async {
+  //   // opens storage to pick files and the picked file or files
+  //   // are assigned into result and if no file is chosen result is null.
+  //   // you can also toggle "allowMultiple" true or false depending on your need
+  //   final result = await FilePicker.platform.pickFiles(allowMultiple: false);
 
-    PlatformFile plat = result!.files.first;
+  //   PlatformFile plat = result!.files.first;
 
-    // if no file is picked
-    if (result == null) return;
+  //   // if no file is picked
+  //   if (result == null) return;
 
-    var fileMap = <String, PlatformFile>{result.files.first.name: plat};
+  //   var fileMap = <String, PlatformFile>{result.files.first.name: plat};
 
-    final fileName = result.files.first.name;
+  //   final fileName = result.files.first.name;
 
-    setState(() {
-      fileBytes = result.files.first.path;
-      filename = result.files.first.name;
-      filesDynamo.add({filename: fileBytes});
-    });
+  //   setState(() {
+  //     fileBytes = result.files.first.path;
+  //     filename = result.files.first.name;
+  //     filesDynamo.add({filename: fileBytes});
+  //   });
 
-    List docs = [];
+  //   List docs = [];
 
-    FirebaseFirestore.instance.collection('attachments').get().then((value) {
-      for (var doc in value.docs) {
-        var name = doc.get('name');
-        docs.add(name);
-        setState(() {
-          att = docs.length;
-        });
-        print(docs.length.toString());
-      }
-    });
+  //   FirebaseFirestore.instance.collection('attachments').get().then((value) {
+  //     for (var doc in value.docs) {
+  //       var name = doc.get('name');
+  //       docs.add(name);
+  //       setState(() {
+  //         att = docs.length;
+  //       });
+  //       print(docs.length.toString());
+  //     }
+  //   });
 
-    if (documentButton == null) {
-      documentButton = 'User Directory';
-    }
+  //   if (documentButton == null) {
+  //     documentButton = 'User Directory';
+  //   }
 
-    FirebaseFirestore.instance
-        .collection('attachments')
-        .doc(attachmentDocId.toString())
-        .set({
-      'name': filename,
-      'type': documentButton,
-      'asset': assetDocId.toString()
-    });
-    getDoc();
-  }
+  //   FirebaseFirestore.instance
+  //       .collection('attachments')
+  //       .doc(attachmentDocId.toString())
+  //       .set({
+  //     'name': filename,
+  //     'type': documentButton,
+  //     'asset': assetDocId.toString()
+  //   });
+  //   getDoc();
+  // }
 
   Future<void> _showDocDialog() async {
     getDoc();
@@ -859,7 +858,7 @@ class _CreateAssetState extends State<CreateAsset> {
                     alignment: Alignment.center,
                     child: GestureDetector(
                       onTap: () {
-                        _pickFile();
+                        // _pickFile();
                       },
                       child: const Text(
                         'upload attachment',
@@ -874,7 +873,7 @@ class _CreateAssetState extends State<CreateAsset> {
                   alignment: Alignment.center,
                   child: GestureDetector(
                     onTap: () {
-                      uploadFile(context);
+                      // uploadFile(context);
                     },
                     child: Container(
                       margin: const EdgeInsets.only(top: 20),

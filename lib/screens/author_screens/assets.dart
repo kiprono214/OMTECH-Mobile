@@ -1,10 +1,13 @@
 import 'package:OMTECH/screens/author_screens/author_home.dart';
+import 'package:OMTECH/screens/author_screens/create_asset.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
+
+import '../../tools/drop_buttons.dart';
 
 class AssetBackPress extends ConsumerWidget {
   void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
@@ -15,9 +18,10 @@ class AssetBackPress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
+    return InkWell(
         onTap: () {
-          _selectPage(context, ref, 'projects');
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => AuthorHome()));
         },
         child: Container(
             width: 60,
@@ -33,11 +37,25 @@ class CreateAssetPress extends ConsumerWidget {
     }
   }
 
+  void getProjId(BuildContext context) async {
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .where('title', isEqualTo: titleClick)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        projectId.text = doc.id;
+      }
+    });
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => CreateAsset()));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        _selectPage(context, ref, 'create asset');
+        getProjId(context);
       },
       child: Container(
           margin: const EdgeInsets.only(bottom: 100),
@@ -88,6 +106,9 @@ class _AssetsStreamState extends State<AssetsStream> {
 
   @override
   Widget build(BuildContext context) {
+    searchController.addListener(() {
+      setState(() {});
+    });
     final searchField = TextFormField(
         autofocus: false,
         controller: searchController,
@@ -132,9 +153,6 @@ class _AssetsStreamState extends State<AssetsStream> {
                 margin: const EdgeInsets.only(left: 20, right: 20, top: 20),
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 24,
-                    ),
                     Stack(
                       children: [
                         AssetBackPress(),
@@ -150,7 +168,7 @@ class _AssetsStreamState extends State<AssetsStream> {
                       ],
                     ),
                     const SizedBox(
-                      height: 30,
+                      height: 20,
                     ),
                     Container(
                       height: 50,
