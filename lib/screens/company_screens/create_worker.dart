@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:random_password_generator/random_password_generator.dart';
 import 'package:intl/intl.dart';
@@ -33,6 +34,25 @@ class _CreateWorkerState extends State<CreateWorker> {
   String id = '0';
   String user = '0';
   var now = DateTime.now();
+
+  Future<void> _showDialogA(String? message) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 1)).then((_) {
+          // addNewW(context);
+          createAuth(email.text, context);
+        });
+        return AlertDialog(
+            insetPadding: const EdgeInsets.only(top: 230, bottom: 230),
+            title: Text(message!),
+            content: SpinKitCircle(
+              color: Colors.black,
+            ));
+      },
+    );
+  }
 
   Future<void> getData() {
     //  final DocumentReference user =
@@ -80,7 +100,8 @@ class _CreateWorkerState extends State<CreateWorker> {
   }
 
   void goBack() {
-    Navigator.of(context).pop();
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => CompanyHome()));
   }
 
   Future<void> _showDialogConsumer(String string) async {
@@ -161,7 +182,7 @@ class _CreateWorkerState extends State<CreateWorker> {
   CollectionReference authors =
       FirebaseFirestore.instance.collection('workers');
 
-  void createAuth(String email) async {
+  void createAuth(String email, BuildContext context) async {
     String? errorMessage;
     try {
       FirebaseAuth firebaseAuth = FirebaseAuth.instance;
@@ -169,7 +190,7 @@ class _CreateWorkerState extends State<CreateWorker> {
           .createUserWithEmailAndPassword(email: email, password: thisPassword)
           .then((uid) {
         // _showDialog('User email added');
-        sendLink(email);
+        sendLink(email, context);
       });
     } on FirebaseAuthException catch (error) {
       if (error.code == 'firebaseAuth/email-already-in-use') {
@@ -184,24 +205,24 @@ class _CreateWorkerState extends State<CreateWorker> {
     }
   }
 
-  Future<void> sendLink(String email) async {
+  Future<void> sendLink(String email, BuildContext context) async {
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
     await firebaseAuth.sendPasswordResetEmail(email: email).then((uid) {
       // _showMyDialog('Email sent to user account');
 
-      addUser();
+      addUser(context);
     });
   }
 
-  Future<void> addUser() {
+  Future<void> addUser(BuildContext context) {
     String val = user.toString();
     return users
         .doc(val)
         .set({'email': email.text, 'access': 'worker'})
         .then((value) => {
               // _showDialog('Worker added to Users'),
-              addProjectManager()
+              addProjectManager(context)
             })
         .catchError((error) => print("Failed to add user: $error"));
   }
@@ -222,7 +243,7 @@ class _CreateWorkerState extends State<CreateWorker> {
   //   return;
   // }
 
-  Future<void> addProjectManager() {
+  Future<void> addProjectManager(BuildContext context) {
     String val = id.toString();
     String dateNow = DateFormat("dd/MM/yyyy").format(DateTime.now());
     return authors.doc(val).set({
@@ -236,8 +257,10 @@ class _CreateWorkerState extends State<CreateWorker> {
       'status': 'active'
     }).then((value) {
       print("User Added");
-      _showDialog('Wroker Added');
+      Navigator.pop(context);
+      _showMyDialog('Worker Added');
     }).catchError((error) {
+      Navigator.pop(context);
       _showDialog("Failed to add user: $error");
     });
   }
@@ -261,7 +284,8 @@ class _CreateWorkerState extends State<CreateWorker> {
             TextButton(
               child: const Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => CompanyHome()));
               },
             ),
           ],
@@ -455,7 +479,7 @@ class _CreateWorkerState extends State<CreateWorker> {
                 companyAssign == null) {
               _showDialog('All fields are required');
             } else if (_formKey.currentState!.validate()) {
-              createAuth(email.text);
+              _showDialogA('Uploading');
             }
           },
           child: const Text(
@@ -524,10 +548,10 @@ class _CreateWorkerState extends State<CreateWorker> {
                 SizedBox(
                   height: 20,
                 ),
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     if (_formKey.currentState!.validate()) {
-                      createAuth(email.text);
+                      _showDialogA('Uploading...');
                     }
                   },
                   child: Container(
@@ -592,11 +616,10 @@ class _CreateWorkerState extends State<CreateWorker> {
   }
 
   void getProf() async {
-    workerProf !=
-        await FirebaseStorage.instance
-            .ref()
-            .child('workers/$id')
-            .getDownloadURL();
+    workerProf = await FirebaseStorage.instance
+        .ref()
+        .child('workers/$id')
+        .getDownloadURL();
     print('"""""""""""""""""$workerProf');
     setState(() {});
   }
@@ -623,7 +646,7 @@ class _CreateWorkerState extends State<CreateWorker> {
       final imageTemp = File(plat.path!);
 
       setState(() {
-        this.image = imageTemp;
+        image = imageTemp;
         imgAsset = plat.name;
       });
     } on PlatformException catch (e) {
@@ -642,7 +665,7 @@ class _CreateWorkerState extends State<CreateWorker> {
           .putFile(image!);
       var downloadUrl = await snapshot.ref.getDownloadURL();
       setState(() {
-        userProf = downloadUrl;
+        workerProf = downloadUrl;
       });
     } else {
       print('No Image Path Received');

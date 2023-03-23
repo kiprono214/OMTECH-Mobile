@@ -2,6 +2,7 @@ import 'package:OMTECH/screens/author_screens/asset_details.dart';
 import 'package:OMTECH/screens/author_screens/assets.dart';
 import 'package:OMTECH/screens/author_screens/assigned.dart';
 import 'package:OMTECH/screens/author_screens/engineer_details.dart';
+import 'package:OMTECH/screens/author_screens/scan.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:OMTECH/screens/author_screens/profile copy.dart';
 import 'package:OMTECH/screens/author_screens/home.dart';
-import '../../tools/qr_code_scanner.dart';
 import 'assets.dart';
 import 'create_asset.dart';
 
@@ -45,7 +45,7 @@ final pages = <String, WidgetBuilder>{
   'profile': (context) => const Profile(),
   'assets': (context) => AssetsStream(title: titleClick),
   'create asset': (context) => CreateAsset(),
-  'scan': (context) => ScanScreen(),
+  'scan': (context) => ScanScreen(from: 'author'),
   'asset details': (context) => AssetDetails(
       assetId: _assetId,
       date: _date,
@@ -579,7 +579,7 @@ class _AssetDetailClickState extends ConsumerState<AssetDetailClick> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getImg();
+    // getImg();
   }
 
   @override

@@ -10,7 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
@@ -1614,6 +1614,66 @@ class _CommentBoxState extends State<CommentBox> {
     }
   }
 
+  Future<void> downloadFileAndShowProgress(String fileUrl) async {
+    String id = widget.id;
+    String commentId = widget.commentId;
+    final String fileName = fileUrl.split('/').last;
+    final Reference reference =
+        FirebaseStorage.instance.ref('work_order_held/$id/$commentId/$fileUrl');
+    final String savePath =
+        await getFilePath('work_order_held/$id/$commentId/$fileUrl');
+
+    print('+++++++++++++++++++     +++++++++++++++++++++++++     $savePath');
+
+    final DownloadTask downloadTask = reference.writeToFile(File(savePath));
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'channel id', 'channel name', 'channel description',
+      importance: Importance.max,
+
+      icon: "@mipmap/launcher_icon",
+
+      // smallIcon: 'assets/images/omlogo.png',
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidNotificationDetails);
+
+    downloadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      final double progress =
+          snapshot.bytesTransferred / snapshot.totalBytes * 100;
+      if (snapshot.state == TaskState.running) {
+        flutterLocalNotificationsPlugin.show(
+          0,
+          'Downloading $fileName',
+          '${progress.toStringAsFixed(2)}%',
+          platformChannelSpecifics,
+          payload: 'item x',
+        );
+      }
+    }, onError: (Object e) {
+      print('Error downloading file: $e');
+    });
+
+    await downloadTask.whenComplete(() async {
+      flutterLocalNotificationsPlugin.cancel(0);
+      flutterLocalNotificationsPlugin.show(
+        0,
+        'Download complete',
+        '$fileName downloaded to $savePath',
+        platformChannelSpecifics,
+        payload: 'item x',
+      );
+    });
+  }
+
+  Future<String> getFilePath(String fileName) async {
+    final Directory? directory = await getExternalStorageDirectory();
+    return '${directory!.path}/Documents';
+  }
+
   List<DocumentSnapshot> attachedFiles = [];
 
   void getAttachments() async {
@@ -1629,84 +1689,6 @@ class _CommentBoxState extends State<CommentBox> {
         attachedFiles.add(doc);
       }
     });
-  }
-
-  Future<void> downloadFileExample(String name) async {
-    String id = widget.id;
-    String commentId = widget.commentId;
-    //First you get the documents folder location on the device...
-    // Directory appDocDir = await getApplicationDocumentsDirectory();
-    //Here you'll specify the file it should be saved as
-    // File downloadToFile = File('${appDocDir.path}/$name');
-    //Here you'll specify the file it should download from Cloud Storage
-    String fileToDownload = 'work_order_held/$id/$commentId/$name';
-
-    //Now you can try to download the specified file, and write it to the downloadToFile.
-    // try {
-    //   await FirebaseStorage.instance
-    //       .ref(fileToDownload)
-    //       .writeToFile(downloadToFile);
-    // } on FirebaseException catch (e) {
-    //   // e.g, e.code == 'canceled'
-    //   print('Download error:');
-    // }
-
-    final instructionUrl =
-        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
-
-    var dir = await getExternalStorageDirectory();
-    if (dir != null) {
-      final taskId = await FlutterDownloader.enqueue(
-        url: instructionUrl,
-        headers: {}, // optional: header send with url (auth token etc)
-        savedDir: dir.path,
-        fileName: 'OMT/$id/$commentId/$name',
-        showNotification:
-            true, // show download progress in status bar (for Android)
-        saveInPublicStorage: true,
-        openFileFromNotification:
-            true, // click on notification to open downloaded file (for Android)
-      );
-    }
-  }
-
-  Future<void> downloadDocExample(String name) async {
-    String id = widget.id;
-    String commentId = widget.id;
-    //First you get the documents folder location on the device...
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    //Here you'll specify the file it should be saved as
-    File downloadToFile = File('${appDocDir.path}/$name');
-    //Here you'll specify the file it should download from Cloud Storage
-    String fileToDownload = 'work_order_held/$id/$commentId/$name';
-
-    //Now you can try to download the specified file, and write it to the downloadToFile.
-    try {
-      await FirebaseStorage.instance
-          .ref(fileToDownload)
-          .writeToFile(downloadToFile);
-    } on FirebaseException catch (e) {
-      // e.g, e.code == 'canceled'
-      print('Download error:');
-    }
-
-    final instructionUrl =
-        await FirebaseStorage.instance.ref(fileToDownload).getDownloadURL();
-
-    var dir = await getExternalStorageDirectory();
-    if (dir != null) {
-      final taskId = await FlutterDownloader.enqueue(
-        url: instructionUrl,
-        headers: {}, // optional: header send with url (auth token etc)
-        savedDir: dir.path,
-        /*fileName:"uniquename",*/
-        showNotification:
-            true, // show download progress in status bar (for Android)
-        saveInPublicStorage: true,
-        openFileFromNotification:
-            true, // click on notification to open downloaded file (for Android)
-      );
-    }
   }
 
   @override
@@ -1804,9 +1786,7 @@ class _CommentBoxState extends State<CommentBox> {
                       onTap: () async {
                         final status = await Permission.storage.request();
 
-                        if (status.isGranted) {
-                          downloadFileExample(doc.get('name'));
-                        }
+                        if (status.isGranted) {}
                       },
                       child: Container(
                         width: 250,

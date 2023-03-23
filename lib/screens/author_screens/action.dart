@@ -185,6 +185,32 @@ class _ActionMState extends State<ActionM> {
                               child: Center(child: Text("Loading...")));
                         }
 
+                        if (snapshot.data!.docs.isEmpty) {
+                          return AlertDialog(
+                            title: const Text('No work orders found'),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: const <Widget>[
+                                  // Text('This is a demo alert dialog.'),
+                                  // Text('Would you like to approve of this message?'),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('OK'),
+                                onPressed: () {
+                                  // Navigator.of(context).pop();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          AuthorHome())); // pop current page
+                                  // push it back in
+                                },
+                              ),
+                            ],
+                          );
+                        }
+
                         documents = snapshot.data!.docs;
                         if (searchController.text.length > 0) {
                           documents = documents.where((element) {
@@ -240,6 +266,36 @@ class _ActionMState extends State<ActionM> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showDialog(String? errorMessage) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(errorMessage!),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                // Text('This is a demo alert dialog.'),
+                // Text('Would you like to approve of this message?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                // Navigator.of(context).pop();
+                Navigator.pop(context); // pop current page
+                // push it back in
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

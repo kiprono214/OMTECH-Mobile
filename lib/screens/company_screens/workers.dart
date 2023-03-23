@@ -173,6 +173,9 @@ class _TabsState extends ConsumerState<Tabs> {
   }
 }
 
+List<DocumentSnapshot> workers = [];
+List<String> delWorkers = [];
+
 class Workers extends StatefulWidget {
   const Workers({Key? key}) : super(key: key);
   @override
@@ -186,7 +189,6 @@ class _WorkersState extends State<Workers> {
     }
   }
 
-  List<DocumentSnapshot> workers = [];
   List<Map<String, String>> engineersNames = [];
   List docIds = [];
 
@@ -197,22 +199,20 @@ class _WorkersState extends State<Workers> {
         .get()
         .then((value) {
       for (var doc in value.docs) {
-        setState(() {
-          workers.add(doc);
-        });
+        workers.add(doc);
+        setState(() {});
       }
     });
   }
 
-  void workerDelete() async {
+  void workerDelete(String id) async {
     await FirebaseFirestore.instance
         .collection('workers')
         .doc(delWork.text)
         .delete()
-        .then((value) {
-      workers.clear;
-      getEng();
-    });
+        .then((value) {});
+    workers.clear;
+    getEng();
   }
 
   // void getFromEngineers() async {
@@ -271,10 +271,10 @@ class _WorkersState extends State<Workers> {
     // TODO: implement initState
     super.initState();
     getEng();
-    delWork.addListener(() {
-      workerDelete();
-      setState(() {});
-    });
+    // delWork.addListener(() {
+    //   workerDelete();
+    //   setState(() {});
+    // });
   }
 
   Future<void> _showDialog() async {
@@ -528,9 +528,9 @@ class _WorkersState extends State<Workers> {
                   ),
                 ),
                 Container(
-                  height: MediaQuery.of(context).size.height,
-                  padding: const EdgeInsets.only(bottom: 70),
-                  margin: const EdgeInsets.only(top: 20),
+                  height: 530,
+                  padding: const EdgeInsets.only(),
+                  margin: const EdgeInsets.only(top: 20, bottom: 40),
                   child: SingleChildScrollView(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -561,7 +561,7 @@ class _WorkersState extends State<Workers> {
   }
 }
 
-class WorkerClick extends StatefulWidget {
+class WorkerClick extends ConsumerStatefulWidget {
   WorkerClick({
     Key? key,
     required this.id,
@@ -578,13 +578,19 @@ class WorkerClick extends StatefulWidget {
   String address;
 
   @override
-  State<WorkerClick> createState() => _WorkerClickState();
+  ConsumerState<WorkerClick> createState() => _WorkerClickState();
 }
 
 TextEditingController delWork = TextEditingController(text: '');
 
-class _WorkerClickState extends State<WorkerClick> {
+class _WorkerClickState extends ConsumerState<WorkerClick> {
   String imgUrl = '';
+
+  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
+    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
+      ref.read(selectedNavPageNameProvider.state).state = pageName;
+    }
+  }
 
   List assets = [];
   void getAssets() async {
@@ -646,221 +652,257 @@ class _WorkerClickState extends State<WorkerClick> {
     if (imgUrl == '') {
       getProf();
     }
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) => WorkerDetails(
-                  name: widget.name,
-                  email: widget.email,
-                  phone: widget.phone,
-                  address: widget.address,
-                  imgUrl: imgUrl,
-                )));
-      },
-      child: Container(
-        alignment: Alignment.centerLeft,
-        height: 120,
-        margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.5),
-            color: const Color.fromRGBO(246, 250, 255, 1)),
-        child: Stack(
-          children: [
-            Row(
-              children: [
-                Container(
-                  height: 100,
-                  width: 100,
-                  margin: const EdgeInsets.all(0.25),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
-                  ),
-                  child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10), child: getPic()),
-                ),
-                Container(
-                    height: double.infinity,
-                    alignment: Alignment.centerLeft,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Container(
-                              alignment: Alignment.centerLeft,
-                              margin: const EdgeInsets.only(left: 15),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      height: 20,
-                                      width: 180,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(widget.name,
-                                          textAlign: TextAlign.start,
-                                          style: const TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.normal,
-                                              fontSize: 14)),
-                                    )
-                                  ]),
-                            ),
-                            Container(
-                              height: 20,
-                              width: 180,
-                              margin: const EdgeInsets.only(left: 15),
-                              alignment: Alignment.centerLeft,
-                              child: Row(
+    return (delWorkers.contains(widget.id))
+        ? Container()
+        : InkWell(
+            onTap: () {},
+            child: Container(
+              alignment: Alignment.centerLeft,
+              height: 120,
+              margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.5),
+                  color: const Color.fromRGBO(246, 250, 255, 1)),
+              child: Stack(
+                children: [
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (BuildContext context) => WorkerDetails(
+                                    name: widget.name,
+                                    email: widget.email,
+                                    phone: widget.phone,
+                                    address: widget.address,
+                                    imgUrl: imgUrl,
+                                  )));
+                        },
+                        child: Container(
+                          height: 100,
+                          width: 100,
+                          margin: const EdgeInsets.all(0.25),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.white,
+                          ),
+                          child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: getPic()),
+                        ),
+                      ),
+                      Container(
+                          height: double.infinity,
+                          alignment: Alignment.centerLeft,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
+                                  SizedBox(
+                                    height: 20,
+                                  ),
                                   Container(
-                                    height: 15,
-                                    width: 15,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                        // color: Color.fromRGBO(237, 245, 254, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(14)),
-                                    child: SvgPicture.asset(
-                                      'assets/images/flag.svg',
-                                      height: 15,
-                                      width: 15,
+                                    alignment: Alignment.centerLeft,
+                                    margin: const EdgeInsets.only(left: 15),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            height: 20,
+                                            width: 180,
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(widget.name,
+                                                textAlign: TextAlign.start,
+                                                style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight:
+                                                        FontWeight.normal,
+                                                    fontSize: 14)),
+                                          )
+                                        ]),
+                                  ),
+                                  Container(
+                                    height: 20,
+                                    width: 180,
+                                    margin: const EdgeInsets.only(left: 15),
+                                    alignment: Alignment.centerLeft,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          height: 15,
+                                          width: 15,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                              // color: Color.fromRGBO(237, 245, 254, 1),
+                                              borderRadius:
+                                                  BorderRadius.circular(14)),
+                                          child: SvgPicture.asset(
+                                            'assets/images/flag.svg',
+                                            height: 15,
+                                            width: 15,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Container(
+                                          width: 70,
+                                          height: 30,
+                                          alignment: Alignment.centerLeft,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Text(widget.address,
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 12)),
+                                          ),
+                                        )
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(width: 3),
-                                  Container(
-                                    width: 70,
-                                    height: 30,
-                                    alignment: Alignment.centerLeft,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Text(widget.address,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 12)),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ]),
-                    )),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                height: 30,
-                width: 84,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    color: Color.fromRGBO(236, 238, 241, 1),
-                    borderRadius: BorderRadius.circular(5)),
-                child: Text(
-                  'Ongoing : ' + ongoing,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
+                                ]),
+                          )),
+                    ],
                   ),
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Container(
-                height: 24,
-                width: 100,
-                alignment: Alignment.bottomRight,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      height: 24,
-                      width: 56,
-                      padding: const EdgeInsets.all(2),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      height: 30,
+                      width: 84,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(12),
+                          color: Color.fromRGBO(236, 238, 241, 1),
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Text(
+                        'Ongoing : ' + ongoing,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      height: 24,
+                      width: 100,
+                      alignment: Alignment.bottomRight,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              if (value == true) {
-                                setState(() {
-                                  value = false;
-                                  changeStatusInactive();
-                                  // switchLeft = Colors.white;
-                                  // switchRight = Colors.transparent;
-                                });
-                              }
-                            },
-                            child: Container(
-                              height: 20,
-                              width: 20,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: (value == true)
-                                      ? Colors.transparent
-                                      : Colors.white),
+                          Container(
+                            height: 24,
+                            width: 56,
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    if (value == true) {
+                                      setState(() {
+                                        value = false;
+                                        changeStatusInactive();
+                                        // switchLeft = Colors.white;
+                                        // switchRight = Colors.transparent;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    height: 20,
+                                    width: 20,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: (value == true)
+                                            ? Colors.transparent
+                                            : Colors.white),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        if (value == false) {
+                                          setState(() {
+                                            value = true;
+                                            changeStatusActive();
+                                            // switchLeft = Colors.transparent;
+                                            // switchRight = Colors.white;
+                                          });
+                                        }
+                                      },
+                                      child: Container(
+                                        height: 20,
+                                        width: 20,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: (value == false)
+                                                ? Colors.transparent
+                                                : Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
                             ),
                           ),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  if (value == false) {
-                                    setState(() {
-                                      value = true;
-                                      changeStatusActive();
-                                      // switchLeft = Colors.transparent;
-                                      // switchRight = Colors.white;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  height: 20,
-                                  width: 20,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: (value == false)
-                                          ? Colors.transparent
-                                          : Colors.white),
-                                ),
-                              ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          InkWell(
+                            onTap: () {
+                              delWork.text = widget.id;
+                              delWorkers.add(widget.id);
+                              workerDelete(widget.id);
+                              _selectPage(context, ref, 'workers');
+                            },
+                            child: SvgPicture.asset(
+                              'assets/images/Group 4911 (1).svg',
+                              height: 24,
+                              width: 24,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        delWork.text = widget.id;
-                      },
-                      child: SvgPicture.asset(
-                        'assets/images/Group 4911 (1).svg',
-                        height: 24,
-                        width: 24,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+  }
+
+  void getEng() async {
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .where('company', isEqualTo: username)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        workers.add(doc);
+      }
+    });
+    setState(() {});
+  }
+
+  void workerDelete(String id) async {
+    await FirebaseFirestore.instance
+        .collection('workers')
+        .doc(delWork.text)
+        .delete()
+        .then((value) {});
+    workers.clear;
+    getEng();
   }
 
   void changeStatusActive() async {

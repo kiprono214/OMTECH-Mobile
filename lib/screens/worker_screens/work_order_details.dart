@@ -1,13 +1,12 @@
 import 'dart:ffi';
 import 'dart:io';
-import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:OMTECH/screens/worker_screens/worker_home.dart';
+import 'package:flutter_downloader/flutter_downloader.dart' as down;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
-import 'package:OMTECH/screens/author_screens/author_home.dart';
-import 'package:OMTECH/screens/author_screens/preventive.dart';
-import 'package:OMTECH/screens/author_screens/reactive.dart';
 import 'package:chewie/chewie.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -24,27 +23,6 @@ import 'package:video_player/video_player.dart';
 
 import '../../authentication/login.dart';
 import '../../tools/stopwatch.dart';
-
-class BackPress extends ConsumerWidget {
-  void _selectPage(BuildContext context, WidgetRef ref, String pageName) {
-    if (ref.read(selectedNavPageNameProvider.state).state != pageName) {
-      ref.read(selectedNavPageNameProvider.state).state = pageName;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-        onTap: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => ReactiveM()));
-        },
-        child: Container(
-            width: 60,
-            alignment: Alignment.bottomLeft,
-            child: const Icon(Icons.arrow_back)));
-  }
-}
 
 class WorkOrderDetails extends StatefulWidget {
   WorkOrderDetails(
@@ -342,6 +320,62 @@ class _WorkOrderDetailsState extends State<WorkOrderDetails> {
       'date': dateNow,
       'caption': comments.length.toString()
     });
+  }
+
+  Future<void> downloadFileAndShowProgress(String fileUrl) async {
+    final String fileName = fileUrl.split('/').last;
+    final Reference reference = FirebaseStorage.instance.ref(fileUrl);
+    final String savePath = await getFilePath('attachments/$fileUrl');
+
+    print('+++++++++++++++++++     +++++++++++++++++++++++++     $savePath');
+
+    final DownloadTask downloadTask = reference.writeToFile(File(savePath));
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'channel id', 'channel name', 'channel description',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: "@mipmap/launcher_icon",
+
+      // smallIcon: 'assets/images/omlogo.png',
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidNotificationDetails);
+
+    downloadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      final double progress =
+          snapshot.bytesTransferred / snapshot.totalBytes * 100;
+      if (snapshot.state == TaskState.running) {
+        flutterLocalNotificationsPlugin.show(
+          0,
+          'Downloading $fileName',
+          '${progress.toStringAsFixed(2)}%',
+          platformChannelSpecifics,
+          payload: 'item x',
+        );
+      }
+    }, onError: (Object e) {
+      print('Error downloading file: $e');
+    });
+
+    await downloadTask.whenComplete(() async {
+      flutterLocalNotificationsPlugin.cancel(0);
+      flutterLocalNotificationsPlugin.show(
+        0,
+        'Download complete',
+        '$fileName downloaded to $savePath',
+        platformChannelSpecifics,
+        payload: 'item x',
+      );
+    });
+  }
+
+  Future<String> getFilePath(String fileName) async {
+    final Directory? directory = await getExternalStorageDirectory();
+    return '${directory!.path}/Documents';
   }
 
   List attachments = [];
@@ -2167,7 +2201,7 @@ class _CommentBoxState extends State<CommentBox> {
 
     var dir = await getExternalStorageDirectory();
     if (dir != null) {
-      final taskId = await FlutterDownloader.enqueue(
+      final taskId = await down.FlutterDownloader.enqueue(
         url: instructionUrl,
         headers: {}, // optional: header send with url (auth token etc)
         savedDir: dir.path,
@@ -2206,7 +2240,7 @@ class _CommentBoxState extends State<CommentBox> {
 
     var dir = await getExternalStorageDirectory();
     if (dir != null) {
-      final taskId = await FlutterDownloader.enqueue(
+      final taskId = await down.FlutterDownloader.enqueue(
         url: instructionUrl,
         headers: {}, // optional: header send with url (auth token etc)
         savedDir: dir.path,
@@ -2218,6 +2252,66 @@ class _CommentBoxState extends State<CommentBox> {
             true, // click on notification to open downloaded file (for Android)
       );
     }
+  }
+
+  Future<void> downloadFileAndShowProgress(String fileUrl) async {
+    String id = widget.id;
+    String commentId = widget.commentId;
+    final String fileName = fileUrl.split('/').last;
+    final Reference reference =
+        FirebaseStorage.instance.ref('work_order_held/$id/$commentId/$fileUrl');
+    final String savePath =
+        await getFilePath('work_order_held/$id/$commentId/$fileUrl');
+
+    print('+++++++++++++++++++     +++++++++++++++++++++++++     $savePath');
+
+    final DownloadTask downloadTask = reference.writeToFile(File(savePath));
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'channel id', 'channel name', 'channel description',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: "@mipmap/launcher_icon",
+
+      // smallIcon: 'assets/images/omlogo.png',
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidNotificationDetails);
+
+    downloadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      final double progress =
+          snapshot.bytesTransferred / snapshot.totalBytes * 100;
+      if (snapshot.state == TaskState.running) {
+        flutterLocalNotificationsPlugin.show(
+          0,
+          'Downloading $fileName',
+          '${progress.toStringAsFixed(2)}%',
+          platformChannelSpecifics,
+          payload: 'item x',
+        );
+      }
+    }, onError: (Object e) {
+      print('Error downloading file: $e');
+    });
+
+    await downloadTask.whenComplete(() async {
+      flutterLocalNotificationsPlugin.cancel(0);
+      flutterLocalNotificationsPlugin.show(
+        0,
+        'Download complete',
+        '$fileName downloaded to $savePath',
+        platformChannelSpecifics,
+        payload: 'item x',
+      );
+    });
+  }
+
+  Future<String> getFilePath(String fileName) async {
+    final Directory? directory = await getExternalStorageDirectory();
+    return '${directory!.path}/Documents';
   }
 
   @override
@@ -2313,7 +2407,7 @@ class _CommentBoxState extends State<CommentBox> {
                   for (var doc in attachedFiles)
                     InkWell(
                       onTap: () {
-                        getPerm(doc.get('name'));
+                        downloadFileAndShowProgress(doc.get('name'));
                       },
                       child: Container(
                         width: 250,

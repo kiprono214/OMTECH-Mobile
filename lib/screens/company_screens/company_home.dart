@@ -184,20 +184,20 @@ class _CompanyHomeState extends ConsumerState<CompanyHome> {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
-                    margin: const EdgeInsets.only(top: 400),
+                    margin: const EdgeInsets.only(top: 600),
                     child: BottomNav()),
               ),
-              Align(
-                  alignment: Alignment.bottomCenter,
-                  child: InkWell(
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
                     onTap: () {
                       _selectPage(context, ref, 'home');
                     },
                     child: Container(
                       height: 76,
                       width: 76,
-                      alignment: Alignment.center,
-                      margin: const EdgeInsets.only(top: 650, bottom: 24),
+                      margin: const EdgeInsets.only(bottom: 23),
                       decoration: BoxDecoration(
                           color: const Color.fromRGBO(46, 55, 73, 1),
                           borderRadius: BorderRadius.circular(38)),
@@ -214,7 +214,13 @@ class _CompanyHomeState extends ConsumerState<CompanyHome> {
                         ],
                       ),
                     ),
-                  ))
+                  ),
+                  Container(
+                    width: double.infinity,
+                    height: 0.5,
+                  )
+                ],
+              )
             ],
           )),
     );

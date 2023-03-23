@@ -384,7 +384,7 @@ class _ProfileState extends ConsumerState<Profile> {
   }
 
   Widget getHolder() {
-    if (userProf == null) {
+    if (userProf == '') {
       return GestureDetector(
         onTap: (() {
           pickImage();
@@ -427,7 +427,7 @@ class _ProfileState extends ConsumerState<Profile> {
   }
 
   Widget getSmallHolder() {
-    if (userProf == null) {
+    if (userProf == '') {
       return GestureDetector(
         onTap: (() {}),
         child: ClipRRect(

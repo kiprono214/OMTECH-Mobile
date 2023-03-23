@@ -204,6 +204,32 @@ class _ActionNState extends State<ActionN> {
                           }).toList();
                         }
 
+                        if (snapshot.data!.docs.isEmpty) {
+                          return AlertDialog(
+                            title: const Text('No work orders found'),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: const <Widget>[
+                                  // Text('This is a demo alert dialog.'),
+                                  // Text('Would you like to approve of this message?'),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('OK'),
+                                onPressed: () {
+                                  // Navigator.of(context).pop();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          CompanyHome())); // pop current page
+                                  // push it back in
+                                },
+                              ),
+                            ],
+                          );
+                        }
+
                         return Container(
                             height: 618,
                             margin: const EdgeInsets.only(bottom: 100),

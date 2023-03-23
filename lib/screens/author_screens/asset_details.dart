@@ -6,6 +6,7 @@ import 'package:OMTECH/screens/author_screens/create_asset.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,7 +22,8 @@ class AssetDetailBackPress extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
         onTap: () {
-          Navigator.of(context).pop();
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => AuthorHome()));
         },
         child: Container(
             width: 60,
@@ -820,13 +822,43 @@ class _AssetDetailsState extends State<AssetDetails> {
                                 alignment: Alignment.centerLeft,
                                 width: 120,
                                 child: const Text(
-                                  'Asset Design Ref',
+                                  'Model',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500),
                                 )),
                             Container(
                                 height: double.infinity,
+                                alignment: Alignment.centerLeft,
+                                width: 120,
+                                child: Text(
+                                  model,
+                                  style: const TextStyle(fontSize: 14),
+                                ))
+                          ]),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.only(top: 4, bottom: 4),
+                          alignment: Alignment.centerLeft,
+                          child: Row(children: [
+                            SvgPicture.asset(
+                              'assets/images/Group 55804.svg',
+                              height: 26,
+                              width: 26,
+                            ),
+                            const SizedBox(
+                              width: 6,
+                            ),
+                            Container(
+                                alignment: Alignment.centerLeft,
+                                width: 120,
+                                child: const Text(
+                                  'Asset Design Ref',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500),
+                                )),
+                            Container(
                                 alignment: Alignment.centerLeft,
                                 width: 120,
                                 child: Text(
@@ -988,8 +1020,13 @@ class _AssetDetailsState extends State<AssetDetails> {
                                   ),
                                   InkWell(
                                     onTap: () {
-                                      downloadFileExample(
+                                      downloadFileAndShowProgress(
                                           doc.entries.first.value);
+                                      print(
+                                          '+++++++++++++++++++++++++++++++++          ' +
+                                              doc.entries.first.value);
+                                      // downloadFileExample(
+                                      //     doc.entries.first.value);
                                     },
                                     child: Container(
                                       width: 120,
@@ -1038,6 +1075,62 @@ class _AssetDetailsState extends State<AssetDetails> {
                     ),
                   )
                 ]))));
+  }
+
+  Future<void> downloadFileAndShowProgress(String fileUrl) async {
+    final String fileName = fileUrl.split('/').last;
+    final Reference reference = FirebaseStorage.instance.ref(fileUrl);
+    final String savePath = await getFilePath('attachments/$fileUrl');
+
+    print('+++++++++++++++++++     +++++++++++++++++++++++++     $savePath');
+
+    final DownloadTask downloadTask = reference.writeToFile(File(savePath));
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'channel id', 'channel name', 'channel description',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: "@mipmap/launcher_icon",
+
+      // smallIcon: 'assets/images/omlogo.png',
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidNotificationDetails);
+
+    downloadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      final double progress =
+          snapshot.bytesTransferred / snapshot.totalBytes * 100;
+      if (snapshot.state == TaskState.running) {
+        flutterLocalNotificationsPlugin.show(
+          0,
+          'Downloading $fileName',
+          '${progress.toStringAsFixed(2)}%',
+          platformChannelSpecifics,
+          payload: 'item x',
+        );
+      }
+    }, onError: (Object e) {
+      print('Error downloading file: $e');
+    });
+
+    await downloadTask.whenComplete(() async {
+      flutterLocalNotificationsPlugin.cancel(0);
+      flutterLocalNotificationsPlugin.show(
+        0,
+        'Download complete',
+        '$fileName downloaded to $savePath',
+        platformChannelSpecifics,
+        payload: 'item x',
+      );
+    });
+  }
+
+  Future<String> getFilePath(String fileName) async {
+    final Directory? directory = await getExternalStorageDirectory();
+    return '${directory!.path}/Documents';
   }
 
   Future<void> downloadFileExample(String name) async {

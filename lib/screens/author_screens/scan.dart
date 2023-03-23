@@ -19,6 +19,15 @@ class ScanScreen extends ConsumerStatefulWidget {
 class _ScanScreenState extends ConsumerState<ScanScreen> {
   String barcodeGet = "";
 
+  bool invoked = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    invoked = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,29 +110,34 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
     });
     if (assetId == '') {
-      _showAssignDialog();
+      if (invoked == false) {
+        invoked = true;
+      }
     } else {
       if (widget.from == 'author') {
         if (author == username) {
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => AssetDetails(
-                  assetId: assetId,
-                  date: date,
-                  id: id,
-                  imgUrl: imgUrl,
-                  name: name,
-                  project: project,
-                  design: design,
-                  serial: serial,
-                  location: location,
-                  model: model,
-                  status: status,
-                  system: system,
-                  subsystem: subsystem,
-                  type: type,
-                  engineer: engineer,
-                  expectancy: expectancy,
-                  details: details)));
+          if (invoked == false) {
+            invoked = true;
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => AssetDetails(
+                    assetId: assetId,
+                    date: date,
+                    id: id,
+                    imgUrl: imgUrl,
+                    name: name,
+                    project: project,
+                    design: design,
+                    serial: serial,
+                    location: location,
+                    model: model,
+                    status: status,
+                    system: system,
+                    subsystem: subsystem,
+                    type: type,
+                    engineer: engineer,
+                    expectancy: expectancy,
+                    details: details)));
+          }
         } else {
           _showDialog('You do not have access');
         }

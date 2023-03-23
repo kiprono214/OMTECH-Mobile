@@ -97,7 +97,7 @@ class _SnagState extends State<Snag> {
                   child: Column(
                     children: [
                       const SizedBox(
-                        height: 40,
+                        height: 20,
                       ),
                       Stack(
                         children: [

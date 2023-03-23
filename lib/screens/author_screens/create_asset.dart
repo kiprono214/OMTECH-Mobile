@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:OMTECH/screens/author_screens/author_home.dart';
+import 'package:OMTECH/screens/author_screens/asset_details.dart';
 import 'package:OMTECH/tools/drop_buttons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -9,6 +10,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
@@ -526,7 +528,7 @@ class _CreateAssetState extends State<CreateAsset> {
                 GestureDetector(
                   onTap: () {
                     if (_formKey.currentState!.validate()) {
-                      addNewAsset();
+                      _showDialogA('Adding...');
                     }
                   },
                   child: Container(
@@ -551,6 +553,35 @@ class _CreateAssetState extends State<CreateAsset> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> showMyDialog() {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 1)).then((_) {
+          uploadFile(context);
+        });
+        return AlertDialog(
+          contentPadding: const EdgeInsets.all(0),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          content: Container(
+              height: 400,
+              width: 600,
+              alignment: Alignment.center,
+              child: Center(
+                  child: SpinKitCircle(
+                color: Colors.orange,
+              )),
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                  color: const Color.fromRGBO(19, 18, 29, 1),
+                  borderRadius: BorderRadius.circular(20))),
+        );
+      },
     );
   }
 
@@ -611,7 +642,7 @@ class _CreateAssetState extends State<CreateAsset> {
     }
   }
 
-  Future<void> addNewAsset() {
+  Future<void> addNewAsset(BuildContext context) {
     String dateNow = DateFormat("dd/MM/yyyy").format(DateTime.now());
     if (subsystemButton == null) {
       subsystemButton = '';
@@ -622,7 +653,7 @@ class _CreateAssetState extends State<CreateAsset> {
     if (roomsButton == null) {}
     return FirebaseFirestore.instance
         .collection('assets')
-        .doc(assetDocId.toString())
+        .doc(assetID.text)
         .set({
       'date': dateNow,
       'name': name.text,
@@ -639,7 +670,10 @@ class _CreateAssetState extends State<CreateAsset> {
       'expectancy': expectancyButton,
       'details': detail.text,
       'status': checkBox()
-    }).then((value) => {_showDialog('Asset Added')});
+    }).then((value) {
+      Navigator.pop(context);
+      _showDialog('Asset Added');
+    });
   }
 
   Future<void> _showDialog(String? message) async {
@@ -668,6 +702,24 @@ class _CreateAssetState extends State<CreateAsset> {
             ),
           ],
         );
+      },
+    );
+  }
+
+  Future<void> _showDialogA(String? message) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 1)).then((_) {
+          addNewAsset(context);
+        });
+        return AlertDialog(
+            insetPadding: const EdgeInsets.only(top: 230, bottom: 230),
+            title: Text(message!),
+            content: SpinKitCircle(
+              color: Colors.black,
+            ));
       },
     );
   }
@@ -701,7 +753,7 @@ class _CreateAssetState extends State<CreateAsset> {
     FirebaseFirestore.instance
         .collection('images')
         .doc(assetDocId.toString())
-        .set({'name': imgAsset, 'asset': assetDocId.toString()});
+        .set({'name': imgAsset, 'asset': assetID.text});
 
     // await FirebaseStorage.instance
     //     .ref('asset_images/$imgAsset')
@@ -741,7 +793,7 @@ class _CreateAssetState extends State<CreateAsset> {
     await FirebaseFirestore.instance
         .collection('images')
         .doc(assetDocId.toString())
-        .set({'name': imgAsset, 'asset': assetDocId.toString()});
+        .set({'name': imgAsset, 'asset': assetID.text});
 
     if (image != null) {
       //Upload to Firebase
@@ -820,16 +872,15 @@ class _CreateAssetState extends State<CreateAsset> {
     FirebaseFirestore.instance
         .collection('attachments')
         .doc(attachmentDocId.toString())
-        .set({
-      'name': filename,
-      'type': documentButton,
-      'asset': assetDocId.toString()
-    });
+        .set({'name': filename, 'type': documentButton, 'asset': assetID.text});
     getDoc();
   }
 
+  bool vis = false;
+
   Future<void> _showDocDialog() async {
     getDoc();
+
     return showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -875,7 +926,7 @@ class _CreateAssetState extends State<CreateAsset> {
                     width: 300,
                     alignment: Alignment.topCenter,
                     child: GetAtts(
-                      assetDocId: assetDocId,
+                      assetDocId: assetID.text,
                     )),
                 Container(
                     width: double.infinity,
@@ -897,7 +948,11 @@ class _CreateAssetState extends State<CreateAsset> {
                   alignment: Alignment.center,
                   child: GestureDetector(
                     onTap: () {
-                      uploadFile(context);
+                      setState(() {
+                        vis = true;
+                      });
+                      showMyDialog();
+                      Navigator.pop(context);
                     },
                     child: Container(
                       margin: const EdgeInsets.only(top: 20),
@@ -1260,7 +1315,7 @@ class _CreateAssetState extends State<CreateAsset> {
       'email': manufacturerEmail.text,
       'phone': phone.text,
       'web_link': webLink.text,
-      'asset': assetDocId.toString()
+      'asset': assetID.text
     }).then((value) {
       Navigator.pop(context);
     });
@@ -1304,11 +1359,11 @@ class _CreateAssetState extends State<CreateAsset> {
         var temp = attachmentsList.length;
         if (attachmentsList.contains(temp.toString())) {
           setState(() {
-            attachmentDocId = attachmentsList.length + 1;
+            attachmentDocId = attachmentsList.length + 2;
           });
         } else {
           setState(() {
-            attachmentDocId = attachmentsList.length;
+            attachmentDocId = attachmentsList.length + 1;
           });
         }
       }
@@ -1334,14 +1389,14 @@ class _CreateAssetState extends State<CreateAsset> {
 
 class GetAtts extends StatefulWidget {
   GetAtts({Key? key, required this.assetDocId}) : super(key: key);
-  int assetDocId;
+  String assetDocId;
   @override
   State<GetAtts> createState() => _GetAttsState(assetDocId: assetDocId);
 }
 
 class _GetAttsState extends State<GetAtts> {
   _GetAttsState({required this.assetDocId});
-  int assetDocId;
+  String assetDocId;
 
   Future<void> deleteDoc(String id, String filename) async {
     await FirebaseFirestore.instance.collection('attachments').doc(id).delete();
@@ -1352,7 +1407,7 @@ class _GetAttsState extends State<GetAtts> {
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> uploads = FirebaseFirestore.instance
         .collection('attachments')
-        .where('asset', isEqualTo: assetDocId.toString())
+        .where('asset', isEqualTo: assetDocId)
         .snapshots();
     return Container(
       padding: const EdgeInsets.only(left: 15, right: 15),
@@ -2049,7 +2104,7 @@ class _EditAssetState extends State<EditAsset> {
                 GestureDetector(
                   onTap: () {
                     if (_formKey.currentState!.validate()) {
-                      addNewAsset();
+                      _showDialogA('Updating...');
                     }
                   },
                   child: Container(
@@ -2134,7 +2189,25 @@ class _EditAssetState extends State<EditAsset> {
     }
   }
 
-  Future<void> addNewAsset() {
+  Future<void> _showDialogA(String? message) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 1)).then((_) {
+          addNewAsset(context);
+        });
+        return AlertDialog(
+            insetPadding: const EdgeInsets.only(top: 230, bottom: 230),
+            title: Text(message!),
+            content: SpinKitCircle(
+              color: Colors.black,
+            ));
+      },
+    );
+  }
+
+  Future<void> addNewAsset(BuildContext context) {
     String dateNow = DateFormat("dd/MM/yyyy").format(DateTime.now());
     if (subsystemButton == null) {
       subsystemButton = '';
@@ -2145,7 +2218,7 @@ class _EditAssetState extends State<EditAsset> {
     if (roomsButton == null) {}
     return FirebaseFirestore.instance
         .collection('assets')
-        .doc(widget.assetId)
+        .doc(assetID.text)
         .update({
       // 'date': dateNow,
       'name': name.text,
@@ -2162,7 +2235,10 @@ class _EditAssetState extends State<EditAsset> {
       'expectancy': expectancyButton,
       'details': detail.text,
       'status': checkBox()
-    }).then((value) => {_showDialog('Asset Updated')});
+    }).then((value) {
+      Navigator.pop(context);
+      _showDialog('Asset Updated');
+    });
   }
 
   Future<void> _showDialog(String? message) async {
@@ -2186,7 +2262,25 @@ class _EditAssetState extends State<EditAsset> {
               onPressed: () {
                 // Navigator.of(context).pop();
                 Navigator.pop(context); // pop current page
-                Navigator.of(context).pop(); // push it back in
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => AssetDetails(
+                        assetId: assetID.text,
+                        date: widget.date,
+                        id: widget.id,
+                        imgUrl: '',
+                        name: widget.name,
+                        project: widget.project,
+                        design: widget.design,
+                        serial: widget.serial,
+                        location: widget.location,
+                        model: widget.model,
+                        status: widget.status,
+                        system: widget.system,
+                        subsystem: widget.subsystem,
+                        type: widget.type,
+                        engineer: widget.engineer,
+                        expectancy: widget.expectancy,
+                        details: widget.details))); // push it back in
               },
             ),
           ],
@@ -2224,7 +2318,7 @@ class _EditAssetState extends State<EditAsset> {
     FirebaseFirestore.instance
         .collection('images')
         .doc(assetDocId.toString())
-        .set({'name': imgAsset, 'asset': assetDocId.toString()});
+        .set({'name': imgAsset, 'asset': assetID.text});
 
     // await FirebaseStorage.instance
     //     .ref('asset_images/$imgAsset')
@@ -2264,7 +2358,7 @@ class _EditAssetState extends State<EditAsset> {
     await FirebaseFirestore.instance
         .collection('images')
         .doc(assetDocId.toString())
-        .set({'name': imgAsset, 'asset': assetDocId.toString()});
+        .set({'name': imgAsset, 'asset': assetID.text});
 
     if (image != null) {
       //Upload to Firebase
@@ -2343,16 +2437,44 @@ class _EditAssetState extends State<EditAsset> {
     FirebaseFirestore.instance
         .collection('attachments')
         .doc(attachmentDocId.toString())
-        .set({
-      'name': filename,
-      'type': documentButton,
-      'asset': assetDocId.toString()
-    });
+        .set({'name': filename, 'type': documentButton, 'asset': assetID.text});
     getDoc();
+  }
+
+  bool vis = false;
+
+  Future<void> showMyDialog() {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        Future.delayed(const Duration(seconds: 2)).then((_) {
+          uploadFile(context);
+        });
+        return AlertDialog(
+          contentPadding: const EdgeInsets.all(0),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          content: Container(
+              height: 400,
+              width: 600,
+              alignment: Alignment.center,
+              child: Center(
+                  child: SpinKitCircle(
+                color: Colors.orange,
+              )),
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                  color: const Color.fromRGBO(19, 18, 29, 1),
+                  borderRadius: BorderRadius.circular(20))),
+        );
+      },
+    );
   }
 
   Future<void> _showDocDialog() async {
     getDoc();
+
     return showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -2398,7 +2520,7 @@ class _EditAssetState extends State<EditAsset> {
                     width: 300,
                     alignment: Alignment.topCenter,
                     child: GetAtts(
-                      assetDocId: assetDocId,
+                      assetDocId: assetID.text,
                     )),
                 Container(
                     width: double.infinity,
@@ -2418,9 +2540,10 @@ class _EditAssetState extends State<EditAsset> {
                     )),
                 Align(
                   alignment: Alignment.center,
-                  child: GestureDetector(
+                  child: InkWell(
                     onTap: () {
-                      uploadFile(context);
+                      Navigator.pop(context);
+                      showMyDialog();
                     },
                     child: Container(
                       margin: const EdgeInsets.only(top: 20),
@@ -2783,7 +2906,7 @@ class _EditAssetState extends State<EditAsset> {
       'email': manufacturerEmail.text,
       'phone': phone.text,
       'web_link': webLink.text,
-      'asset': assetDocId.toString()
+      'asset': assetID.text
     }).then((value) {
       Navigator.pop(context);
     });
@@ -2814,11 +2937,11 @@ class _EditAssetState extends State<EditAsset> {
     });
   }
 
-  Future<void> getDoc() {
+  void getDoc() async {
     //  final DocumentReference user =
     List attachmentsList = [];
 
-    return FirebaseFirestore.instance
+    await FirebaseFirestore.instance
         .collection("attachments")
         .get()
         .then((QuerySnapshot querySnapshot) {
@@ -2857,14 +2980,14 @@ class _EditAssetState extends State<EditAsset> {
 
 class GetAttsEdit extends StatefulWidget {
   GetAttsEdit({Key? key, required this.assetDocId}) : super(key: key);
-  int assetDocId;
+  String assetDocId;
   @override
   State<GetAttsEdit> createState() => _GetAttsEditState(assetDocId: assetDocId);
 }
 
 class _GetAttsEditState extends State<GetAttsEdit> {
   _GetAttsEditState({required this.assetDocId});
-  int assetDocId;
+  String assetDocId;
 
   Future<void> deleteDoc(String id, String filename) async {
     await FirebaseFirestore.instance.collection('attachments').doc(id).delete();
@@ -2875,7 +2998,7 @@ class _GetAttsEditState extends State<GetAttsEdit> {
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> uploads = FirebaseFirestore.instance
         .collection('attachments')
-        .where('asset', isEqualTo: assetDocId.toString())
+        .where('asset', isEqualTo: assetId)
         .snapshots();
     return Container(
       padding: const EdgeInsets.only(left: 15, right: 15),

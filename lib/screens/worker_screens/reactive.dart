@@ -96,7 +96,7 @@ class _ReactiveMState extends State<ReactiveM> {
                   child: Column(
                     children: [
                       const SizedBox(
-                        height: 40,
+                        height: 20,
                       ),
                       Stack(
                         children: [
@@ -201,6 +201,32 @@ class _ReactiveMState extends State<ReactiveM> {
                                 .toLowerCase()
                                 .contains(searchController.text.toLowerCase());
                           }).toList();
+                        }
+
+                        if (snapshot.data!.docs.isEmpty) {
+                          return AlertDialog(
+                            title: const Text('No work orders found'),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: const <Widget>[
+                                  // Text('This is a demo alert dialog.'),
+                                  // Text('Would you like to approve of this message?'),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('OK'),
+                                onPressed: () {
+                                  // Navigator.of(context).pop();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          WorkerHome())); // pop current page
+                                  // push it back in
+                                },
+                              ),
+                            ],
+                          );
                         }
 
                         return Container(

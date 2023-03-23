@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:OMTECH/authentication/login.dart';
-import 'package:OMTECH/screens/author_screens/asset_details.dart';
+import 'package:OMTECH/screens/worker_screens/asset_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +18,16 @@ class ScanScreen extends ConsumerStatefulWidget {
 
 class _ScanScreenState extends ConsumerState<ScanScreen> {
   String barcodeGet = "";
+
+  bool invoked = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    invoked = false;
+    getWorkerAssets();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +111,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
     });
     if (assetId == '') {
-      _showAssignDialog();
+      if (invoked == false) {
+        invoked = true;
+      }
     } else {
-      if (widget.from == 'author') {
-        if (author == username) {
+      if (invoked == false) {
+        invoked = true;
+        if (workerAssets.contains(id)) {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => AssetDetails(
                   assetId: assetId,
@@ -131,7 +144,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     }
   }
 
-  void _showDialog(String? errorMessage) async {
+  List<String> workerAssets = [];
+
+  void getWorkerAssets() async {
+    await FirebaseFirestore.instance
+        .collection('worker_projects')
+        .where('worker', isEqualTo: username)
+        .get()
+        .then((value) {
+      for (var doc in value.docs) {
+        workerAssets.add(doc.get('asset'));
+      }
+    });
+    setState(() {});
+  }
+
+  Future<void> _showDialog(String? errorMessage) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!

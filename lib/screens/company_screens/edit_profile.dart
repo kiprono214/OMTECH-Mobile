@@ -620,7 +620,7 @@ class _ViewProfileState extends State<ViewProfile> {
   }
 
   Widget getHolder() {
-    if (userProf == null) {
+    if (userProf == '') {
       return GestureDetector(
         onTap: (() {
           pickImage();

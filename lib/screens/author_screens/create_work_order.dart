@@ -728,6 +728,9 @@ class _CreateWorkOrderState extends State<CreateWorkOrder> {
       imgAsset = result.files.first.name;
     });
 
+    getMedia();
+    addMedia();
+
     await FirebaseFirestore.instance
         .collection('n_w_o_images')
         .doc(workOrderId.toString())

@@ -97,18 +97,114 @@ class _AssetsStreamState extends State<AssetsStream> {
     });
   }
 
+  String filter = 'detail';
+
+  List<DocumentSnapshot> documents = [];
+
+  final filters = <String, String>{
+    'Manufacturer': 'manufacturer',
+    'Title': 'name',
+    'Type': 'type',
+    'Room': 'room_location'
+  };
+
+  Future<void> _showDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          contentPadding: const EdgeInsets.all(0),
+          insetPadding:
+              const EdgeInsets.only(left: 130, top: 00, right: 20, bottom: 150),
+          content: Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(top: 0, bottom: 50),
+            decoration: BoxDecoration(
+                color: const Color.fromRGBO(237, 245, 255, 1),
+                borderRadius: BorderRadius.circular(20)),
+            width: 150,
+            height: 330,
+            child: ListView(
+              children: [
+                Container(
+                  height: 80,
+                  width: double.infinity,
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          height: 40,
+                          width: double.infinity,
+                          padding: const EdgeInsets.only(right: 20),
+                          alignment: Alignment.bottomRight,
+                          child: const Icon(Icons.cancel,
+                              color: Colors.orangeAccent, size: 20),
+                        ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        height: 40,
+                        alignment: Alignment.topCenter,
+                        child: const Text(
+                          'Filter By',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                for (var item in filters.entries)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        filter = item.value;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      height: 30,
+                      width: double.infinity,
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8)),
+                      margin: const EdgeInsets.only(
+                          left: 40, right: 40, bottom: 10),
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text(
+                        item.key,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('assets')
       .where('project', isEqualTo: titleClick)
       .snapshots();
 
-  List<DocumentSnapshot> documents = [];
-
   @override
   Widget build(BuildContext context) {
-    searchController.addListener(() {
-      setState(() {});
-    });
+    // searchController.addListener(() {
+    //   setState(() {});
+    // });
+
     final searchField = TextFormField(
         autofocus: false,
         controller: searchController,
@@ -170,50 +266,82 @@ class _AssetsStreamState extends State<AssetsStream> {
                     const SizedBox(
                       height: 20,
                     ),
-                    Container(
-                      height: 50,
-                      width: double.infinity,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black54,
-                            offset: Offset(
-                              1.2,
-                              1.2,
-                            ),
-                            blurRadius: 10.0,
-                            spreadRadius: 2.0,
-                          ), //BoxShadow
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: searchField,
+                    Row(children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                        ),
+                        child: Container(
+                          height: 50,
+                          width: 265,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black54,
+                                offset: Offset(
+                                  1.2,
+                                  1.2,
+                                ),
+                                blurRadius: 10.0,
+                                spreadRadius: 2.0,
+                              ), //BoxShadow
+                            ],
                           ),
-                          Container(
-                            height: 50,
-                            alignment: Alignment.center,
-                            margin: const EdgeInsets.only(right: 5),
-                            child: Container(
-                                height: 36,
-                                width: 36,
-                                margin: const EdgeInsets.only(left: 280),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: 265,
+                                child: searchField,
+                              ),
+                              Container(
+                                height: 50,
                                 alignment: Alignment.center,
-                                padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(
+                                margin: const EdgeInsets.only(right: 5),
+                                child: Container(
+                                    height: 36,
+                                    width: 36,
+                                    margin: const EdgeInsets.only(left: 220),
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                        color: Color.fromRGBO(46, 55, 73, 1)),
+                                    child: SvgPicture.asset(
+                                        'assets/images/Combined Shape.svg')),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: (() => _showDialog()),
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10)),
+                                  color: Color.fromARGB(255, 255, 161, 1)),
+                              child: Container(
+                                  decoration: const BoxDecoration(
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(10)),
-                                    color: Color.fromRGBO(255, 204, 3, 1)),
-                                child: SvgPicture.asset(
-                                    'assets/images/Combined Shape.svg')),
-                          )
-                        ],
-                      ),
-                    ),
+                                  ),
+                                  child: SvgPicture.asset(
+                                      'assets/images/Group 5 (1).svg')),
+                            ),
+                          ),
+                        ),
+                      )
+                    ]),
                   ],
                 ),
               ),
@@ -247,7 +375,7 @@ class _AssetsStreamState extends State<AssetsStream> {
                       if (searchController.text.length > 0) {
                         documents = documents.where((element) {
                           return element
-                              .get('name')
+                              .get(filter)
                               .toString()
                               .toLowerCase()
                               .contains(searchController.text.toLowerCase());
@@ -255,8 +383,8 @@ class _AssetsStreamState extends State<AssetsStream> {
                       }
 
                       return Container(
-                          height: 600,
-                          margin: const EdgeInsets.only(bottom: 120),
+                          height: 530,
+                          margin: const EdgeInsets.only(bottom: 60),
                           child: SingleChildScrollView(
                             child: Column(
                                 children: documents

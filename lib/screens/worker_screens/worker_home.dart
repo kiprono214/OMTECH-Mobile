@@ -3,7 +3,7 @@ import 'package:OMTECH/screens/worker_screens/asset_work_orders.dart';
 import 'package:OMTECH/screens/worker_screens/assets.dart';
 import 'package:OMTECH/screens/worker_screens/assigned.dart';
 import 'package:OMTECH/screens/worker_screens/engineer_details.dart';
-import 'package:OMTECH/tools/qr_code_scanner.dart';
+import 'package:OMTECH/screens/worker_screens/scan.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
